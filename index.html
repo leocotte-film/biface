@@ -1,0 +1,2202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIFACE</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body { position: relative; }
+
+/* INTRO : les vignettes se raccordent visuellement au vrai rail, sans coupure */
+#intro { position:fixed; inset:0; z-index:200; overflow:hidden; background:#000; opacity:1; transition:opacity .85s ease; }
+#intro.hide { opacity:0; pointer-events:none; }
+#intro-logo { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:1; transition:opacity 1s ease; }
+#intro-logo iframe { display:block; width:min(82vw,1100px); height:min(46.125vw,619px); border:0; }
+#intro.logo-out #intro-logo { opacity:0; }
+.intro-thumbnails { position:absolute; top:50%; left:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; width:128px; max-height:92vh; padding:0; opacity:1; transform:translate(-50%,-50%); transition:left 2.35s cubic-bezier(.2,.72,.22,1), top 2.35s cubic-bezier(.2,.72,.22,1), transform 2.35s cubic-bezier(.2,.72,.22,1), gap 2.35s ease, width 2.35s cubic-bezier(.2,.72,.22,1); }
+.intro-thumb { display:flex; flex:0 0 auto; align-items:center; gap:10px; width:128px; min-height:45px; opacity:0; transform:translateY(-12px) scale(.98); transition:opacity .55s ease, transform .65s cubic-bezier(.2,.7,.2,1), width 2.35s cubic-bezier(.2,.72,.22,1), min-height 2.35s cubic-bezier(.2,.72,.22,1); }
+.intro-thumb-image-frame { display:block; position:relative; flex:0 0 auto; width:80px; height:45px; overflow:hidden; line-height:0; background:#161616; transition:width 2.35s cubic-bezier(.2,.72,.22,1), height 2.35s cubic-bezier(.2,.72,.22,1); }
+.intro-thumb-image-frame img { display:block; width:100%; height:100%; object-fit:cover; background:#161616; }
+.intro-thumb.crop-14 .intro-thumb-image-frame img { transform:scale(1.4); transform-origin:center center; }
+.intro-thumb img { display:block; }
+.intro-thumb-title { display:block; flex:1 1 auto; min-width:0; color:#fff; font-size:11px; font-weight:500; letter-spacing:.35px; line-height:1.35; text-transform:uppercase; opacity:0; overflow:hidden; transition:opacity .45s ease; }
+#intro.thumbnails-in .intro-thumb { opacity:.88; transform:translateY(0) scale(1); }
+#intro.thumbnails-in .intro-thumb:nth-child(1) { transition-delay:0s; }
+#intro.thumbnails-in .intro-thumb:nth-child(2) { transition-delay:.10s; }
+#intro.thumbnails-in .intro-thumb:nth-child(3) { transition-delay:.20s; }
+#intro.thumbnails-in .intro-thumb:nth-child(4) { transition-delay:.30s; }
+#intro.thumbnails-in .intro-thumb:nth-child(5) { transition-delay:.40s; }
+#intro.thumbnails-in .intro-thumb:nth-child(6) { transition-delay:.50s; }
+#intro.thumbnails-in .intro-thumb:nth-child(7) { transition-delay:.60s; }
+#intro.thumbnails-in .intro-thumb:nth-child(8) { transition-delay:.70s; }
+#intro.thumbnails-in .intro-thumb:nth-child(9) { transition-delay:.80s; }
+#intro.thumbnails-in .intro-thumb:nth-child(10) { transition-delay:.90s; }
+#intro.thumbnails-in .intro-thumb:nth-child(11) { transition-delay:1s; }
+#intro.thumbnails-in .intro-thumb:nth-child(12) { transition-delay:1.1s; }
+/* Les vignettes sont positionnées en JS sur les coordonnées réelles de chaque item du rail. */
+#intro.thumbnails-left .intro-thumbnails { inset:0; left:0; top:0; width:100%; max-height:none; display:block; padding:0; transform:none; gap:0; }
+#intro.thumbnails-left .intro-thumb { position:absolute; margin:0; gap:10px; min-height:0; opacity:.62; transform:none; transition:left 1.65s cubic-bezier(.22,.75,.18,1), top 1.65s cubic-bezier(.22,.75,.18,1), width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1), opacity .4s ease; }
+#intro.thumbnails-left .intro-thumb-image-frame { width:112px; height:63px; transition:width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1); }
+#intro.thumbnails-left .intro-thumb-title { opacity:0; transition:opacity .45s ease; }
+/* Le vrai rail apparaît sous les vignettes de l'intro avant que l'overlay ne s'efface. */
+#logo, #top-links, #navigation, #homepage-project-description, #video-stage { transition:opacity .8s ease; }
+/* Les titres attendent que les miniatures aient terminé leur déplacement. */
+body.intro-revealing:not(.intro-titles-visible) .project-title { opacity:0; }
+body.intro-titles-visible .project-title { transition:opacity .45s ease; }
+body.intro-hidden #logo, body.intro-hidden #top-links, body.intro-hidden #navigation, body.intro-hidden #homepage-project-description, body.intro-hidden #video-stage { opacity:0; }
+body.intro-revealing #logo, body.intro-revealing #top-links, body.intro-revealing #navigation, body.intro-revealing #homepage-project-description, body.intro-revealing #video-stage { opacity:1; }
+
+/* LOGO */
+#logo {
+  position: fixed;
+  z-index: 110;
+  top: 26px;
+  left: 32px;
+  transform: none;
+  display: block;
+  width: 98px;
+  height: 26px;
+  line-height: 0;
+  text-decoration: none;
+  user-select: none;
+}
+
+#logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ABOUT / CONTACT — NAVIGATION */
+#top-links {
+  position: fixed;
+  z-index: 110;
+  top: 29px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 27px;
+}
+
+#top-links a {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .8px;
+  text-decoration: none;
+  text-transform: uppercase;
+  opacity: .85;
+  transition: opacity .2s ease;
+}
+
+#top-links a:hover {
+  opacity: .5;
+}
+
+/* PAGES ABOUT / CONTACT / WORK */
+.info-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  display: none;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 70px 24px 40px;
+  background: #000;
+  color: #fff;
+  border: 0;
+}
+
+.info-panel.open {
+  display: flex;
+}
+
+.info-panel-close {
+  position: fixed;
+  z-index: 70;
+  top: 25px;
+  right: 28px;
+  padding: 12px 0 12px 12px;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  font: 400 10px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: .85;
+  transition: opacity .2s ease;
+}
+
+.info-panel-close:hover {
+  opacity: .5;
+}
+
+/* ABOUT */
+#about-panel {
+  text-align: center;
+}
+
+#about-logo {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: min(560px, calc(100vw - 48px));
+  aspect-ratio: 16 / 9;
+  margin: 0 auto 22px;
+  overflow: hidden;
+  background: #000;
+}
+
+#about-logo iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+#about-copy {
+  width: min(680px, calc(100vw - 48px));
+  margin: 0 auto;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.7;
+  text-align: center;
+}
+
+#about-copy p + p {
+  margin-top: 22px;
+}
+body.about-open #about-copy { max-width: 680px; }
+body.about-open #logo { z-index: 75; }
+body.about-open #about-close, body.contact-open #contact-close { top: 25px; right: 28px; }
+
+/* CONTACT */
+#contact-panel {
+  text-align: center;
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  text-align: center;
+}
+
+#contact-panel a {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .2px;
+  line-height: 1.5;
+  text-decoration: none;
+  transition: opacity .2s ease;
+}
+
+#contact-panel a:hover {
+  opacity: .5;
+}
+
+/* WORK : GRILLE DE PROJETS, TROIS PAR LIGNE */
+#work-panel {
+  z-index: 90;
+  display: none;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 112px 1.3vw 70px;
+  overflow-y: auto;
+}
+#work-panel.open { display: block; }
+#work-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 2px;
+  row-gap: clamp(110px, 13vw, 190px);
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+}
+.work-card {
+  display: block;
+  min-width: 0;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  opacity: .88;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.work-card:hover { opacity: 1; }
+.work-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #111;
+  transition: transform .35s ease;
+}
+.work-card:hover img { transform: scale(1.012); }
+/* Zoom du contenu dans un cadre 16:9 fixe, uniquement pour les deux films Antoine Dupont. */
+.work-image-frame { display:block; width:100%; aspect-ratio:16 / 9; overflow:hidden; background:#111; }
+.work-image-frame img { width:100%; height:100%; aspect-ratio:auto; object-fit:cover; }
+.work-card.crop-14 .work-image-frame img { transform:scale(1.4); }
+.work-card.crop-14:hover .work-image-frame img { transform:scale(1.42); }
+.work-card-meta {
+  display: grid;
+  grid-template-columns: 5px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+  margin-top: 14px;
+}
+.work-card-dot {
+  width: 4px;
+  height: 4px;
+  margin-top: 4px;
+  background: #fff;
+}
+.work-card-copy { min-width: 0; }
+.work-card-title {
+  display: block;
+  width: 100%;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: .15px;
+  text-transform: uppercase;
+}
+.work-card-directed {
+  display: block;
+  margin-top: 2px;
+  color: #999;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.work-card-type {
+  display: block;
+  color: #999;
+  font-size: 10px;
+  line-height: 1.35;
+}
+/* Sur Work et Contact, la navigation disparaît : seul le logo et Close restent. */
+body.work-open #top-links,
+body.about-open #top-links,
+body.contact-open #top-links { display: none !important; }
+#contact-panel .contact-links { transform: translateY(0); gap: 18px; }
+#contact-panel a { font-size: 16px; line-height: 1.6; }
+#contact-panel .info-panel-close { top: 25px; right: 28px; }
+body.work-open #video-stage,
+body.work-open #navigation,
+body.work-open #homepage-project-description { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+/* About et Contact sont des pages plein écran, sans aucun élément de la homepage. */
+body.about-open #video-stage,
+body.about-open #navigation,
+body.about-open #homepage-project-description,
+body.contact-open #video-stage,
+body.contact-open #navigation,
+body.contact-open #homepage-project-description {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+body.about-open #about-panel,
+body.contact-open #contact-panel { z-index: 90; }
+body.about-open #about-copy {
+  width: min(680px, calc(100vw - 48px));
+  margin: 0 auto;
+  text-align: center;
+}
+body.contact-open .contact-links {
+  position: relative;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+/* VIDÉOS HOMEPAGE */
+#video-stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  pointer-events: none;
+}
+
+/* Chaque projet garde son propre lecteur Vimeo prêt en arrière-plan.
+   On ne recharge donc plus une vidéo différente à chaque survol. */
+.video-slide {
+  position: absolute;
+  top: 58%;
+  left: 71%;
+  width: min(64vw, 113.78vh);
+  height: min(67vh, 37.69vw);
+  overflow: hidden;
+  background: #000;
+  display: block;
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity .12s linear;
+}
+.video-slide.active {
+  display: block;
+  opacity: 1;
+  z-index: 2;
+}
+.video-slide.preparing { display: block; z-index: 1; opacity: 0; }
+
+.video-slide .open-fullscreen-hitarea {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  cursor: zoom-in;
+}
+.video-slide.active .open-fullscreen-hitarea {
+  pointer-events: auto;
+}
+
+.video-slide iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Options de cadrage conservées pour compatibilité, mais les projets utilisent leur format naturel. */
+.video-slide.fit-crop iframe {
+  width: 140%;
+  height: 140%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Ancien crop Leboncoin désactivé : format naturel. */
+.video-slide.fit-leboncoin iframe {
+  width: 140%;
+  height: 140%;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* MONSIEUR PARIS : SOURCE PORTRAIT ROTÉE */
+.video-slide.fit-portrait iframe {
+  width: 56.25%;
+  height: 177.78%;
+  min-width: 0;
+  min-height: 0;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* TITRE DU PROJET EN COURS SUR LA HOMEPAGE */
+#homepage-project-description {
+  position: fixed;
+  z-index: 20;
+  left: calc(71% - min(64vw, 113.78vh) / 2);
+  top: calc(58% - min(33.5vh, 18.845vw) - 34px);
+  width: min(64vw, 113.78vh);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .8px;
+  line-height: 1.35;
+  text-transform: uppercase;
+  text-align: center;
+  opacity: .9;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+body.viewer-open #homepage-project-description {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* MINIATURES */
+#navigation {
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 78px;
+  bottom: 24px;
+  width: 28vw;
+  max-width: 430px;
+  min-width: 300px;
+  padding: 0 18px 0 28px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: opacity .5s ease, transform .5s ease;
+  pointer-events: none;
+}
+#navigation.visible {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+#thumbnail-track {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
+  padding-bottom: 35px;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+  transform: translateY(0);
+  transition: none;
+  will-change: transform;
+  touch-action: pan-y;
+}
+
+.project {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  cursor: pointer;
+  opacity: .62;
+  transition: opacity .2s ease;
+  white-space: normal;
+  user-select: none;
+}
+.project:hover, .project.selected { opacity: 1; }
+
+.project img {
+  display: block;
+  flex: 0 0 auto;
+  width: 112px;
+  height: 63px;
+  object-fit: cover;
+  background: #161616;
+  transition: width .2s ease, height .2s ease;
+}
+.project.selected img {
+  width: 128px;
+  height: 72px;
+}
+
+.project-title {
+  display: -webkit-box;
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .35px;
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+/* PROGRESSION : LA MINIATURE INVERSEE SE REVELE EN 7 SECONDES */
+.project-thumb {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  line-height: 0;
+  overflow: hidden;
+}
+.project.crop-14 .project-thumb > img,
+.project.crop-14 .project-progress-fill img { transform:scale(1.4); }
+.project-progress-fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+  z-index: 2;
+}
+.project-progress-fill img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: invert(1);
+}
+
+/* En mode film : aucun élément de la homepage ne doit rester visible. */
+body.viewer-open #logo,
+body.viewer-open #top-links,
+body.viewer-open #navigation,
+body.viewer-open #about-panel,
+body.viewer-open #contact-panel,
+body.viewer-open #work-panel,
+body.viewer-open .intro-thumbnails {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* LECTEUR PLEIN ÉCRAN */
+#project-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  /* Fond noir opaque dans le viewer : aucun ancien projet ne doit apparaître autour du suivant. */
+  background: #000;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+#project-viewer.open { display: flex; }
+#project-viewer.instant-loading { background: #000; }
+#project-viewer.visible { opacity: 1; }
+
+#viewer-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+#viewer-iframe, #viewer-buffer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity .08s linear;
+}
+.viewer-player.active { opacity: 0; }
+#viewer-video.ready .viewer-player.active { opacity: 1; }
+
+/* MONSIEUR PARIS : source portrait tournée à l'horizontale dans le lecteur plein écran */
+.viewer-player.viewer-fit-portrait {
+  width: 100vh;
+  height: 177.78vw;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+#viewer-buffer { pointer-events: none; }
+
+/* BOUTONS */
+.viewer-control {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  background: transparent;
+  border: 0;
+  padding: 12px 16px;
+  font: 400 9px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-shadow: 0 1px 8px rgba(0,0,0,.65);
+  opacity: .85;
+  transition: opacity .18s ease;
+}
+.viewer-control:hover { opacity: .55; }
+#viewer-previous { left: 14px; }
+#viewer-next { right: 14px; }
+#viewer-close {
+  top: 25px;
+  right: 28px;
+  transform: none;
+  padding: 12px 0 12px 12px;
+  font-size: 10px;
+}
+
+#viewer-project-title {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  left: 32px;
+  bottom: 28px;
+  max-width: calc(100% - 64px);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 8px rgba(0,0,0,.65);
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  #logo {
+    top: 20px;
+    left: 18px;
+    transform: none;
+    width: 87px;
+    height: 23px;
+  }
+
+  #top-links {
+    top: 24px;
+    right: 18px;
+    gap: 16px;
+  }
+
+  #top-links a {
+    font-size: 9px;
+    letter-spacing: .5px;
+  }
+
+  .info-panel {
+    padding: 65px 20px 30px;
+  }
+  #work-panel { padding: 76px 16px 34px; }
+  #work-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; row-gap: 38px; }
+  .work-card img, .work-card-title { width: 100%; }
+  .work-card-meta { margin-top: 9px; grid-template-columns: 4px minmax(0, 1fr); column-gap: 7px; }
+  .work-card-title, .work-card-directed, .work-card-type { font-size: 8px; letter-spacing: .1px; }
+  .work-card-dot { width: 3px; height: 3px; margin-top: 3px; }
+  #contact-panel a { font-size: 14px; }
+
+  .info-panel-close {
+    top: 18px;
+    right: 18px;
+    font-size: 9px;
+  }
+
+  #about-logo {
+    width: min(440px, calc(100vw - 40px));
+    margin-bottom: 18px;
+  }
+
+  #about-copy {
+    width: min(440px, calc(100vw - 40px));
+    font-size: 11px;
+    line-height: 1.65;
+  }
+
+  #about-copy p + p {
+    margin-top: 13px;
+  }
+
+  #contact-panel a {
+    font-size: 11px;
+  }
+
+  #navigation { top: 65px; bottom: 16px; width: 39vw; min-width: 0; padding: 0 8px 0 12px; }
+  #thumbnail-track { gap: 12px; }
+  .project img { width: 76px; height: 43px; }
+  .project.selected img { width: 84px; height: 47px; }
+  .project-title { font-size: 8px; line-height: 1.25; }
+  .project { gap: 6px; }
+  .video-slide { top: 61%; left: 73%; width: 57vw; height: min(56vh, 32.06vw); }
+  #homepage-project-description {
+    left: calc(73% - 28.5vw);
+    top: calc(61% - min(28vh, 16.03vw) - 26px);
+    width: 57vw;
+    font-size: 9px;
+    letter-spacing: .5px;
+  }
+  #viewer-video { left: 50%; width: 100vw; height: 100vh; }
+  #viewer-previous { left: 5px; }
+  #viewer-next { right: 5px; }
+  #viewer-project-title { left: 18px; bottom: 18px; max-width: calc(100% - 36px); font-size: 9px; }
+  .intro-thumbnails { gap: 4px; padding: 0; }
+  .viewer-control {
+    font-size: 8px;
+    letter-spacing: .4px;
+    padding: 10px 7px;
+  }
+  #viewer-previous { left: 5px; }
+  #viewer-next { right: 5px; }
+  #viewer-close {
+    top: 16px;
+    right: 16px;
+    padding: 10px 0 10px 10px;
+  }
+  #viewer-project-title {
+    left: 18px;
+    bottom: 18px;
+    max-width: calc(100% - 36px);
+    font-size: 9px;
+  }
+}
+@media (max-width: 560px) {
+  #work-grid { grid-template-columns: 1fr; row-gap: 34px; }
+  #work-panel { padding-left: 16px; padding-right: 16px; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="intro" aria-hidden="true">
+  <div id="intro-logo">
+    <iframe src="https://player.vimeo.com/video/1231016401?autoplay=1&muted=1&loop=1&background=1&title=0&byline=0&portrait=0&dnt=1" allow="autoplay; fullscreen; picture-in-picture" title="BIFACE logo intro"></iframe>
+  </div>
+  <div class="intro-thumbnails" id="intro-thumbnails"></div>
+</div>
+
+<a href="#" id="logo" aria-label="BIFACE"><img src="logo-biface.png" alt="BIFACE"></a>
+
+<!-- NOUVELLES RUBRIQUES -->
+<nav id="top-links" aria-label="Main navigation">
+  <a href="#" id="work-link" aria-expanded="false">Work</a>
+  <a href="#" id="about-link" aria-expanded="false">About</a>
+  <a href="#" id="contact-link" aria-expanded="false">Contact</a>
+</nav>
+
+<!-- PAGE WORK -->
+<section class="info-panel" id="work-panel" aria-hidden="true">
+  <button class="info-panel-close" id="work-close" type="button">Close ×</button>
+  <div id="work-grid"></div>
+</section>
+
+<!-- PAGE ABOUT -->
+<section class="info-panel" id="about-panel" aria-hidden="true">
+  <button class="info-panel-close" id="about-close" type="button">Close ×</button>
+
+  <div id="about-copy">
+    <p>BIFACE is a directors’ duo composed of Paul Montarlier and Léo Cotte, operating at the intersection of luxury and visual innovation.</p>
+    <p>Their signature lies in a precise approach to visual storytelling and a hybridization of creative techniques, from craft to digital creation, in service of powerful and contemporary imagery.</p>
+  </div>
+</section>
+
+<!-- PAGE CONTACT -->
+<section class="info-panel" id="contact-panel" aria-hidden="true">
+  <button class="info-panel-close" id="contact-close" type="button">Close ×</button>
+
+  <div class="contact-links">
+    <a href="mailto:biface.film@gmail.com">biface.film@gmail.com</a>
+    <a href="https://www.instagram.com/biface.co/" target="_blank" rel="noopener noreferrer">@biface.co</a>
+    <a href="https://vimeo.com/biface" target="_blank" rel="noopener noreferrer">Vimeo</a>
+  </div>
+</section>
+
+<div id="homepage-project-description" aria-live="polite">LOUIS VUITTON — FRAGMENT OF HISTORY</div>
+
+<div id="video-stage">
+  <div class="video-slide active" id="slide-a">
+    <iframe
+      id="player-a"
+      src="https://player.vimeo.com/video/1224954207?autoplay=1&muted=1&controls=0&title=0&byline=0&portrait=0&loop=1&autopause=0&dnt=1"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+      title="BIFACE video player A">
+    </iframe>
+  </div>
+
+  <div class="video-slide preparing" id="slide-b">
+    <iframe
+      id="player-b"
+      src="https://player.vimeo.com/video/1224954207?autoplay=0&muted=1&controls=0&title=0&byline=0&portrait=0&loop=1&autopause=0&dnt=1"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+      title="BIFACE video player B">
+    </iframe>
+  </div>
+</div>
+
+<nav id="navigation">
+  <div id="thumbnail-track"></div>
+</nav>
+
+<div id="project-viewer" aria-hidden="true">
+  <div id="viewer-video">
+    <iframe
+      id="viewer-iframe"
+      class="viewer-player active"
+      src="https://player.vimeo.com/video/1224954207?autoplay=0&muted=1&controls=0&title=0&byline=0&portrait=0&pip=0&loop=1&autopause=0&dnt=1&playsinline=1"
+      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+      allowfullscreen
+      title="BIFACE project viewer">
+    </iframe>
+    <iframe
+      id="viewer-buffer"
+      class="viewer-player"
+      src="https://player.vimeo.com/video/1224954207?autoplay=0&muted=1&controls=0&title=0&byline=0&portrait=0&pip=0&loop=1&autopause=0&dnt=1&playsinline=1"
+      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+      allowfullscreen
+      title="BIFACE preloaded project viewer"
+      aria-hidden="true">
+    </iframe>
+  </div>
+
+  <button class="viewer-control" id="viewer-previous" type="button">← Previous Project</button>
+  <button class="viewer-control" id="viewer-next" type="button">Next Project →</button>
+  <button class="viewer-control" id="viewer-close" type="button" aria-label="Return to homepage">×</button>
+  <div id="viewer-project-title"></div>
+</div>
+
+<script src="https://player.vimeo.com/api/player.js"></script>
+
+<script>
+const INTRO_DURATION = 9000;
+const CLIP_DURATION = 7000;
+
+const projects = [
+  { id: "1224954207", title: "LOUIS VUITTON — FRAGMENT OF HISTORY", fit: "standard", start: 0 },
+  { id: "1188662943", title: "INITIO — HEDONIST", fit: "standard", start: 0 },
+  { id: "1188661684", title: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", fit: "standard", start: 0 },
+  { id: "1188664994", title: "RILES — INTO THE FLAMME", fit: "standard", start: 0 },
+  { id: "1231024530", title: "LIQUIDE IMAGINAIRE", fit: "standard", start: 0 },
+  { id: "1225919946", title: "ADIDAS RS15 PRO × ANTOINE DUPONT", fit: "crop", start: 0 },
+  { id: "1225688145", title: "ST DUPONT — MY MOTHER'S BAG", fit: "standard", start: 0 },
+  { id: "1225919914", title: "À L'INTÉRIEUR × ANTOINE DUPONT", fit: "crop", start: 0 },
+  { id: "1224978393", title: "LEBONCOIN — L'INVENTAIRE", fit: "standard", start: 0 },
+  { id: "1225955279", title: "MONSIEUR PARIS", fit: "portrait", start: 0 },
+  { id: "1230217532", title: "PARFUMS DE MARLY - BLEU ROI", fit: "standard", start: 0 },
+  { id: "1239804969", title: "ANAVE - SERUM SEA HEALER", fit: "standard", start: 0 }
+];
+
+const intro = document.getElementById("intro");
+const introThumbnails = document.getElementById("intro-thumbnails");
+const thumbnailTrack = document.getElementById("thumbnail-track");
+const navigation = document.getElementById("navigation");
+const projectViewer = document.getElementById("project-viewer");
+const viewerTitle = document.getElementById("viewer-project-title");
+let viewerIframe = document.getElementById("viewer-iframe");
+let viewerBufferIframe = document.getElementById("viewer-buffer");
+const viewerFrame = document.getElementById("viewer-video");
+
+/* GESTION ABOUT / CONTACT */
+const aboutPanel = document.getElementById("about-panel");
+const contactPanel = document.getElementById("contact-panel");
+const workPanel = document.getElementById("work-panel");
+const aboutLink = document.getElementById("about-link");
+const contactLink = document.getElementById("contact-link");
+const workLink = document.getElementById("work-link");
+let viewerReturnPage = "home";
+
+function closeInfoPanels() {
+  aboutPanel.classList.remove("open");
+  contactPanel.classList.remove("open");
+  workPanel.classList.remove("open");
+  document.body.classList.remove("work-open", "about-open", "contact-open");
+
+  aboutPanel.setAttribute("aria-hidden", "true");
+  contactPanel.setAttribute("aria-hidden", "true");
+  workPanel.setAttribute("aria-hidden", "true");
+
+  aboutLink.setAttribute("aria-expanded", "false");
+  contactLink.setAttribute("aria-expanded", "false");
+  workLink.setAttribute("aria-expanded", "false");
+}
+
+function openWorkPage() {
+  closeInfoPanels();
+  workPanel.classList.add("open");
+  workPanel.setAttribute("aria-hidden", "false");
+  workLink.setAttribute("aria-expanded", "true");
+  document.body.classList.add("work-open");
+}
+
+workLink.addEventListener("click", event => {
+  event.preventDefault();
+  if (workPanel.classList.contains("open")) closeInfoPanels();
+  else openWorkPage();
+});
+document.getElementById("work-close").addEventListener("click", closeInfoPanels);
+
+aboutLink.addEventListener("click", event => {
+  event.preventDefault();
+
+  const shouldOpen = !aboutPanel.classList.contains("open");
+  closeInfoPanels();
+
+  if (shouldOpen) {
+    aboutPanel.classList.add("open");
+    document.body.classList.add("about-open");
+    aboutPanel.setAttribute("aria-hidden", "false");
+    aboutLink.setAttribute("aria-expanded", "true");
+  }
+});
+
+contactLink.addEventListener("click", event => {
+  event.preventDefault();
+
+  const shouldOpen = !contactPanel.classList.contains("open");
+  closeInfoPanels();
+
+  if (shouldOpen) {
+    contactPanel.classList.add("open");
+    document.body.classList.add("contact-open");
+    contactPanel.setAttribute("aria-hidden", "false");
+    contactLink.setAttribute("aria-expanded", "true");
+  }
+});
+
+document.getElementById("about-close").addEventListener("click", closeInfoPanels);
+document.getElementById("contact-close").addEventListener("click", closeInfoPanels);
+
+const homepageProjectDescription = document.getElementById("homepage-project-description");
+const videoStage = document.getElementById("video-stage");
+videoStage.innerHTML = "";
+projects.forEach((project, index) => {
+  const slide = document.createElement("div");
+  slide.className = `video-slide${index === 0 ? " active" : " preparing"}`;
+  slide.id = `slide-project-${index}`;
+  const iframe = document.createElement("iframe");
+  iframe.id = `player-project-${index}`;
+  iframe.src = `https://player.vimeo.com/video/${project.id}?autoplay=0&muted=1&controls=0&title=0&byline=0&portrait=0&loop=1&autopause=0&dnt=1&playsinline=1`;
+  iframe.allow = "autoplay; fullscreen; picture-in-picture";
+  iframe.allowFullscreen = true;
+  iframe.title = `BIFACE ${project.title}`;
+  slide.appendChild(iframe);
+  const fullscreenHitArea = document.createElement("button");
+  fullscreenHitArea.type = "button";
+  fullscreenHitArea.className = "open-fullscreen-hitarea";
+  fullscreenHitArea.setAttribute("aria-label", `Voir ${project.title} en plein écran`);
+  fullscreenHitArea.title = "Voir en plein écran";
+  fullscreenHitArea.addEventListener("click", event => {
+    event.preventDefault();
+    if (sequenceStarted && !viewerOpen) openProjectViewer(index);
+  });
+  slide.appendChild(fullscreenHitArea);
+  videoStage.appendChild(slide);
+});
+const slides = Array.from(videoStage.querySelectorAll(".video-slide"));
+const iframes = Array.from(videoStage.querySelectorAll("iframe"));
+const players = iframes.map(iframe => new Vimeo.Player(iframe));
+let viewerPlayer = new Vimeo.Player(viewerIframe);
+let viewerBufferPlayer = new Vimeo.Player(viewerBufferIframe);
+let preloadedViewerIndex = null;
+let viewerBufferPromise = null;
+let viewerBufferTargetIndex = null;
+
+let activeSlot = 0;
+let currentIndex = 0;
+let navigationIndex = 0; // Projet visé par le trackpad, indépendant du délai de chargement Vimeo
+let sequenceStarted = false;
+let viewerOpen = false;
+let sequenceTimer = null;
+let viewerRequestToken = 0;
+let sequenceRequestToken = 0;
+let progressAnimationToken = 0;
+let preloadRequestToken = 0;
+let preparedIndex = null;
+let preparedSlot = null;
+let preloadInProgress = null;
+let projectSwitchInProgress = false;
+let pendingProjectIndex = null;
+let pendingProjectSource = "auto";
+let manualTargetIndex = null;
+let userNavigationVersion = 0;
+let userNavigationResolvers = [];
+let viewerAspectRatio = 16 / 9;
+
+/* DÉFILEMENT FLUIDE DU TRACKPAD */
+
+let trackPosition = 0;
+let trackTarget = 0;
+let trackAnimationFrame = null;
+let lastTrackTimestamp = 0;
+let lastScrollTriggeredIndex = null;
+let previousItemCenters = [];
+let previousTrackPosition = 0;
+// Empêche le recentrage automatique des miniatures de simuler un geste utilisateur.
+let trackMovementSource = "auto";
+let hoverPointerX = null;
+let hoverPointerY = null;
+let lastHoveredProjectIndex = null;
+let manualHoverActive = false;
+let resumeAutoIndex = null;
+
+function selectProjectIndex(index) {
+  if (!sequenceStarted || viewerOpen || !Number.isInteger(index) ||
+      index < 0 || index >= projects.length) return;
+
+  if (index === lastHoveredProjectIndex && index === navigationIndex) return;
+  lastHoveredProjectIndex = index;
+  navigationIndex = index;
+  thumbnailItems.forEach(thumbnail => {
+    thumbnail.classList.toggle("selected", Number(thumbnail.dataset.index) === index);
+  });
+
+  // Prépare aussi le lecteur plein écran dès le survol, avant le clic.
+  void preloadViewerProject(index);
+
+  // La miniature survolée devient immédiatement la cible. Cette action est
+  // déclenchée directement par pointerenter, sans attendre une détection globale.
+  if (index !== currentIndex ||
+      (pendingProjectIndex !== null && pendingProjectIndex !== index) ||
+      (manualTargetIndex !== null && manualTargetIndex !== index)) {
+    goToProject(index, "user");
+  }
+}
+
+function selectProjectUnderPointer() {
+  if (!sequenceStarted || viewerOpen || hoverPointerX === null || hoverPointerY === null) return;
+
+  const navRect = navigation.getBoundingClientRect();
+  if (hoverPointerX < navRect.left || hoverPointerX > navRect.right ||
+      hoverPointerY < navRect.top || hoverPointerY > navRect.bottom) {
+    lastHoveredProjectIndex = null;
+    return;
+  }
+
+  const element = document.elementFromPoint(hoverPointerX, hoverPointerY);
+  const item = element && element.closest ? element.closest(".project") : null;
+  const index = item && thumbnailTrack.contains(item)
+    ? Number(item.dataset.index)
+    : null;
+
+  if (!Number.isInteger(index)) {
+    lastHoveredProjectIndex = null;
+    return;
+  }
+  selectProjectIndex(index);
+}
+
+document.addEventListener("mousemove", event => {
+  hoverPointerX = event.clientX;
+  hoverPointerY = event.clientY;
+  selectProjectUnderPointer();
+}, { passive: true });
+
+function interruptForUserNavigation() {
+  userNavigationVersion++;
+  const resolvers = userNavigationResolvers;
+  userNavigationResolvers = [];
+  resolvers.forEach(resolve => resolve());
+}
+
+async function waitForUserOr(promise, version, timeout, fallbackValue = null) {
+  let interruptResolver = null;
+  const interruption = new Promise(resolve => {
+    if (userNavigationVersion !== version) {
+      resolve({ interrupted: true });
+    } else {
+      interruptResolver = () => resolve({ interrupted: true });
+      userNavigationResolvers.push(interruptResolver);
+    }
+  });
+  const result = await Promise.race([
+    withTimeout(promise, timeout, fallbackValue).then(value => ({ value })),
+    interruption
+  ]);
+  if (interruptResolver) {
+    userNavigationResolvers = userNavigationResolvers.filter(resolve => resolve !== interruptResolver);
+  }
+  return result;
+}
+
+function recycleTrackItems() {
+  // On recycle les vrais éléments plutôt que de téléporter tout le rail.
+  // Cela garde un mouvement continu dans les deux sens, sans limite de scroll.
+  let guard = 0;
+  while (trackPosition < 0 && guard++ < 30) {
+    const first = thumbnailTrack.firstElementChild;
+    if (!first) break;
+    const gap = parseFloat(getComputedStyle(thumbnailTrack).rowGap || getComputedStyle(thumbnailTrack).gap) || 0;
+    const step = first.getBoundingClientRect().height + gap;
+    if (step <= 1 || trackPosition > -step) break;
+    thumbnailTrack.appendChild(first);
+    thumbnailItems.push(thumbnailItems.shift());
+    trackPosition += step;
+    trackTarget += step;
+  }
+  guard = 0;
+  while (trackPosition > 0 && guard++ < 30) {
+    const last = thumbnailTrack.lastElementChild;
+    if (!last) break;
+    const gap = parseFloat(getComputedStyle(thumbnailTrack).rowGap || getComputedStyle(thumbnailTrack).gap) || 0;
+    const step = last.getBoundingClientRect().height + gap;
+    if (step <= 1 || trackPosition < step) break;
+    thumbnailTrack.insertBefore(last, thumbnailTrack.firstElementChild);
+    thumbnailItems.unshift(thumbnailItems.pop());
+    trackPosition -= step;
+    trackTarget -= step;
+  }
+}
+
+function renderTrack(timestamp) {
+  if (lastTrackTimestamp === 0) lastTrackTimestamp = timestamp;
+  const elapsed = Math.min(timestamp - lastTrackTimestamp, 32);
+  lastTrackTimestamp = timestamp;
+
+  const smoothing = 1 - Math.pow(0.001, elapsed / 70);
+  trackPosition += (trackTarget - trackPosition) * smoothing;
+
+  if (Math.abs(trackTarget - trackPosition) < 0.15) {
+    trackPosition = trackTarget;
+  }
+
+  recycleTrackItems();
+  thumbnailTrack.style.transform =
+    `translate3d(0, ${trackPosition}px, 0)`;
+
+  // Ne pas laisser le rail qui avance automatiquement changer de projet
+  // simplement parce qu'une miniature passe sous un pointeur immobile.
+  // La sélection par survol reste active sur les vrais mouvements de souris.
+  if (trackMovementSource === "user") selectProjectUnderPointer();
+
+  previousTrackPosition = trackPosition;
+
+  if (Math.abs(trackTarget - trackPosition) > 0.15) {
+    trackAnimationFrame = requestAnimationFrame(renderTrack);
+  } else {
+    trackAnimationFrame = null;
+    lastTrackTimestamp = 0;
+    lastScrollTriggeredIndex = null;
+    previousItemCenters = [];
+    previousTrackPosition = trackPosition;
+  }
+}
+
+function setTrackTarget(value, source = "user") {
+  trackMovementSource = source;
+  // Pas de clamp ni de modulo : le rail recycle les éléments pendant le rendu.
+  trackTarget = value;
+  if (trackAnimationFrame === null) {
+    previousItemCenters = thumbnailItems.map(item => {
+      const rect = item.getBoundingClientRect();
+      return rect.top + rect.height / 2;
+    });
+    previousTrackPosition = trackPosition;
+    trackAnimationFrame = requestAnimationFrame(renderTrack);
+  }
+}
+
+function withTimeout(promise, ms, fallbackValue = null) {
+  return Promise.race([
+    Promise.resolve(promise).catch(() => fallbackValue),
+    new Promise(resolve => setTimeout(() => resolve(fallbackValue), ms))
+  ]);
+}
+
+/* CONSTRUCTION DES MINIATURES */
+
+projects.forEach((project, index) => {
+  const introItem = document.createElement("div");
+  introItem.className = "intro-thumb" + (["1225919946", "1225919914"].includes(project.id) ? " crop-14" : "");
+  const introImageFrame = document.createElement("span");
+  introImageFrame.className = "intro-thumb-image-frame";
+  const introImage = document.createElement("img");
+  introImage.src = `https://vumbnail.com/${project.id}.jpg`;
+  introImage.alt = "";
+  introImageFrame.appendChild(introImage);
+  const introTitle = document.createElement("span");
+  introTitle.className = "intro-thumb-title";
+  introTitle.textContent = project.title;
+  introItem.appendChild(introImageFrame);
+  introItem.appendChild(introTitle);
+  introThumbnails.appendChild(introItem);
+
+  const item = document.createElement("div");
+  item.className = "project" + (["1225919946", "1225919914"].includes(project.id) ? " crop-14" : "");
+  item.dataset.index = index;
+
+  const thumbWrap = document.createElement("span");
+  thumbWrap.className = "project-thumb";
+
+  const image = document.createElement("img");
+  image.src = `https://vumbnail.com/${project.id}.jpg`;
+  image.alt = project.title;
+  image.loading = "eager";
+
+  const progressFill = document.createElement("span");
+  progressFill.className = "project-progress-fill";
+
+  const invertedImage = document.createElement("img");
+  invertedImage.src = `https://vumbnail.com/${project.id}.jpg`;
+  invertedImage.alt = "";
+  invertedImage.loading = "eager";
+  progressFill.appendChild(invertedImage);
+
+  thumbWrap.appendChild(image);
+  thumbWrap.appendChild(progressFill);
+
+  const title = document.createElement("span");
+  title.className = "project-title";
+  title.textContent = project.title;
+
+  item.appendChild(thumbWrap);
+  item.appendChild(title);
+
+  // Déclenchement immédiat au premier contact du pointeur avec la miniature.
+  item.addEventListener("pointerenter", event => {
+    if (event.pointerType === "touch") return;
+    selectProjectIndex(Number(item.dataset.index));
+  }, { passive: true });
+
+  item.addEventListener("click", () => {
+    if (!sequenceStarted) return;
+    openProjectViewer(Number(item.dataset.index));
+  });
+
+  thumbnailTrack.appendChild(item);
+});
+
+/* WORK : ORDRE INDÉPENDANT DE LA HOMEPAGE */
+const workOrder = [
+  { id: "1224954207", title: "LOUIS VUITTON — FRAGMENT OF HISTORY", displayTitle: "LOUIS VUITTON", type: "Storytelling, Craftsmanship" },
+  { id: "1188662943", title: "INITIO — HEDONIST", displayTitle: "INITIO — HEDONIST", type: "Fragrance, Artistic Film" },
+  { id: "1188661684", title: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", displayTitle: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", type: "Fashion" },
+  { id: "1225919914", title: "À L'INTÉRIEUR × ANTOINE DUPONT", displayTitle: "ANTOINE DUPONT — À L'INTÉRIEUR", type: "Sport, Lifestyle" },
+  { id: "1230217532", title: "PARFUMS DE MARLY — BLEU ROI", displayTitle: "PARFUMS DE MARLY — BLEU ROI", type: "Fragrance, Craftsmanship" },
+  { id: "1231024530", title: "LIQUIDE IMAGINAIRE", displayTitle: "LIQUIDE IMAGINAIRE", type: "Fragrance" },
+  { id: "1239804969", title: "ANAVÉ — SERUM SEA HEALER", displayTitle: "ANAVÉ — SERUM SEA HEALER", type: "Beauty" },
+  { id: "1225688145", title: "ST DUPONT — MY MOTHER'S BAG", displayTitle: "ST DUPONT — FÊTE DES MÈRES", type: "Luxury, Storytelling" },
+  { id: "1188664994", title: "RILES — INTO THE FLAMME", displayTitle: "RILES — INTO THE FLAMME", type: "Fashion, Music" },
+  { id: "1225919946", title: "ADIDAS RS15 PRO × ANTOINE DUPONT", displayTitle: "ADIDAS RS15 PRO × ANTOINE DUPONT", type: "Campaign, Sportswear" },
+  { id: "1224978393", title: "LEBONCOIN — L'INVENTAIRE", displayTitle: "LEBONCOIN — L'INVENTAIRE", type: "Campaign, Lifestyle" },
+  { id: "1225955279", title: "MONSIEUR PARIS", displayTitle: "MONSIEUR PARIS", type: "Jewellery, Luxury" }
+];
+const workGrid = document.getElementById("work-grid");
+workOrder.forEach(workProject => {
+  const index = projects.findIndex(project => project.id === workProject.id);
+  if (index < 0) return;
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "work-card" + (["1225919946", "1225919914"].includes(workProject.id) ? " crop-14" : "");
+  card.setAttribute("aria-label", `Ouvrir ${workProject.title}`);
+  const imageFrame = document.createElement("span");
+  imageFrame.className = "work-image-frame";
+  const image = document.createElement("img");
+  image.src = `https://vumbnail.com/${workProject.id}.jpg`;
+  image.alt = workProject.title;
+  image.loading = "lazy";
+  const meta = document.createElement("span");
+  meta.className = "work-card-meta";
+  const dot = document.createElement("span");
+  dot.className = "work-card-dot";
+  dot.setAttribute("aria-hidden", "true");
+  const copy = document.createElement("span");
+  copy.className = "work-card-copy";
+  const title = document.createElement("span");
+  title.className = "work-card-title";
+  title.textContent = workProject.displayTitle || workProject.title;
+  const directed = document.createElement("span");
+  directed.className = "work-card-directed";
+  directed.textContent = "Directed by BIFACE";
+  const type = document.createElement("span");
+  type.className = "work-card-type";
+  type.textContent = workProject.type;
+  copy.appendChild(title);
+  copy.appendChild(directed);
+  copy.appendChild(type);
+  meta.appendChild(dot);
+  meta.appendChild(copy);
+  imageFrame.appendChild(image);
+  card.appendChild(imageFrame);
+  card.appendChild(meta);
+  card.addEventListener("click", () => openProjectViewer(index, "work"));
+  workGrid.appendChild(card);
+});
+
+const thumbnailItems = Array.from(document.querySelectorAll(".project"));
+
+/* CADRAGE */
+
+function applyFit(slot, fit) {
+  slides[slot].classList.remove("fit-crop", "fit-leboncoin", "fit-portrait");
+
+  if (fit === "crop") slides[slot].classList.add("fit-crop");
+  else if (fit === "leboncoin") slides[slot].classList.add("fit-leboncoin");
+  else if (fit === "portrait") slides[slot].classList.add("fit-portrait");
+}
+
+/* MINIATURE ACTIVE */
+
+function updateSelectedThumbnail(index, center = false) {
+  thumbnailItems.forEach(item => {
+    item.classList.toggle("selected", Number(item.dataset.index) === index);
+  });
+
+  const selected = thumbnailItems.find(item => Number(item.dataset.index) === index);
+  if (!selected) return;
+
+  const navRect = navigation.getBoundingClientRect();
+  const itemRect = selected.getBoundingClientRect();
+  let correction = 0;
+
+  if (center) {
+    correction = navRect.top + navRect.height / 2 -
+      (itemRect.top + itemRect.height / 2);
+  } else if (itemRect.bottom > navRect.bottom - 10) {
+    correction = navRect.bottom - 10 - itemRect.bottom;
+  } else if (itemRect.top < navRect.top + 10) {
+    correction = navRect.top + 10 - itemRect.top;
+  }
+
+  if (correction !== 0) {
+    // Ce déplacement sert uniquement à garder le projet actif visible.
+    // Il ne doit jamais déclencher une sélection via la ligne imaginaire.
+    setTrackTarget(trackTarget + correction, "auto");
+  }
+}
+
+/* PROGRESSION SYNCHRONISÉE */
+
+function clearProgress() {
+  ++progressAnimationToken;
+
+  thumbnailItems.forEach(item => {
+    const fill = item.querySelector(".project-progress-fill");
+    fill.style.transition = "none";
+    fill.style.clipPath = "inset(0 100% 0 0)";
+  });
+}
+
+function resetProgress() {
+  clearProgress();
+  const token = progressAnimationToken;
+  const activeFill = thumbnailItems[currentIndex]
+    ?.querySelector(".project-progress-fill");
+
+  if (!activeFill) return;
+  void activeFill.offsetWidth;
+
+  requestAnimationFrame(() => {
+    if (token !== progressAnimationToken || viewerOpen) return;
+    activeFill.style.transition = `clip-path ${CLIP_DURATION}ms linear`;
+    activeFill.style.clipPath = "inset(0 0 0 0)";
+  });
+}
+
+function scheduleNextProject() {
+  clearTimeout(sequenceTimer);
+  if (!sequenceStarted || viewerOpen) return;
+
+  // Le compteur démarre uniquement pour la vidéo actuellement affichée.
+  // Aucun préchargement Vimeo ne peut retarder ou annuler cette échéance.
+  resetProgress();
+  sequenceTimer = setTimeout(() => {
+    sequenceTimer = null;
+    if (!sequenceStarted || viewerOpen) return;
+    // La séquence suit toujours le lecteur réellement affiché : chaque clip
+    // reste 7 secondes, puis on passe au projet suivant dans l'ordre du rail.
+    // Un ancien survol ne doit pas bloquer ou désynchroniser l'enchaînement.
+    manualTargetIndex = null;
+    manualHoverActive = false;
+    resumeAutoIndex = null;
+    if (pendingProjectSource === "user") {
+      pendingProjectIndex = null;
+      pendingProjectSource = "auto";
+    }
+    goToProject((currentIndex + 1) % projects.length, "auto");
+  }, CLIP_DURATION);
+}
+
+async function startPlayerAndWait(player, timeout = 1800) {
+  let timer;
+  let onPlaying;
+  const playbackStarted = new Promise(resolve => {
+    onPlaying = () => {
+      clearTimeout(timer);
+      player.off("playing", onPlaying).catch(() => {});
+      resolve(true);
+    };
+    player.on("playing", onPlaying);
+    timer = setTimeout(async () => {
+      player.off("playing", onPlaying).catch(() => {});
+      // Ne valide pas un changement si Vimeo a accepté play() mais que la
+      // vidéo est toujours en pause : c'était une cause possible de boucle.
+      try {
+        const paused = await withTimeout(player.getPaused(), 500, true);
+        resolve(!paused);
+      } catch (_) {
+        resolve(false);
+      }
+    }, timeout);
+  });
+
+  try {
+    await player.play();
+  } catch (error) {
+    clearTimeout(timer);
+    player.off("playing", onPlaying).catch(() => {});
+    return false;
+  }
+
+  return playbackStarted;
+}
+
+function goToProject(index, source = "auto") {
+  if (!sequenceStarted || viewerOpen) return;
+
+  const normalizedIndex = (index + projects.length) % projects.length;
+  if (source === "user") {
+    if (!manualHoverActive) {
+      resumeAutoIndex = (currentIndex + 1) % projects.length;
+      manualHoverActive = true;
+    }
+    manualTargetIndex = normalizedIndex;
+    // Interrompt les attentes d'une transition/précharge précédente afin que
+    // la cible sous la ligne ne reste pas en file pendant plusieurs secondes.
+    interruptForUserNavigation();
+    ++preloadRequestToken;
+    preparedIndex = null;
+    preparedSlot = null;
+  } else if (manualTargetIndex !== null) {
+    return;
+  }
+
+  pendingProjectIndex = normalizedIndex;
+  pendingProjectSource = source;
+  navigationIndex = normalizedIndex;
+  clearTimeout(sequenceTimer);
+  sequenceTimer = null;
+
+  if (projectSwitchInProgress) return;
+
+  projectSwitchInProgress = true;
+  (async () => {
+    try {
+      while (pendingProjectIndex !== null && sequenceStarted && !viewerOpen) {
+        const requestedIndex = pendingProjectIndex;
+        const requestedSource = pendingProjectSource;
+        pendingProjectIndex = null;
+        pendingProjectSource = "auto";
+        await performGoToProject(requestedIndex, requestedSource);
+      }
+    } finally {
+      projectSwitchInProgress = false;
+      if (pendingProjectIndex !== null && sequenceStarted && !viewerOpen) {
+        goToProject(pendingProjectIndex, pendingProjectSource);
+      } else if (sequenceStarted && !viewerOpen && sequenceTimer === null) {
+        scheduleNextProject();
+      }
+    }
+  })();
+}
+
+async function requestBestAvailableQuality(player) {
+  // Demande la définition la plus élevée et la réapplique après le démarrage :
+  // Vimeo peut sinon commencer en basse définition pendant l'adaptation du flux.
+  try {
+    const qualities = await withTimeout(player.getQualities(), 1400, []);
+    if (!Array.isArray(qualities) || !qualities.length) return;
+    const rank = quality => parseInt(String(quality).replace(/[^0-9]/g, ""), 10) || 0;
+    const best = qualities.slice().sort((a, b) => rank(b) - rank(a))[0];
+    if (best) {
+      await withTimeout(player.setQuality(best), 1400);
+      // Certains lecteurs Vimeo reviennent à Auto juste après le premier play.
+      setTimeout(() => { player.setQuality(best).catch(() => {}); }, 350);
+      setTimeout(() => { player.setQuality(best).catch(() => {}); }, 1300);
+    }
+  } catch (_) {}
+}
+
+async function performPreloadNextProject() {
+  // Les iframes sont déjà créées pour chaque projet. Ne jamais lancer la
+  // vidéo suivante en arrière-plan : cela peut faire jouer un autre projet
+  // pendant que le lecteur visible affiche le projet courant.
+  if (!sequenceStarted || viewerOpen) return;
+  const targetIndex = (currentIndex + 1) % projects.length;
+  if (targetIndex === currentIndex) return;
+  preparedIndex = targetIndex;
+  preparedSlot = targetIndex;
+}
+
+function preloadNextProject() {
+  if (!sequenceStarted || viewerOpen) return Promise.resolve();
+  if (preloadInProgress) return preloadInProgress;
+  const task = performPreloadNextProject();
+  preloadInProgress = task;
+  task.finally(() => {
+    if (preloadInProgress === task) preloadInProgress = null;
+  });
+  return task;
+}
+
+// Réchauffe les lecteurs un par un pendant l'intro / la lecture. On les laisse
+// démarrer brièvement en muet afin que le premier frame soit prêt au survol.
+async function warmProjectPlayers() {
+  // Aucun lecteur caché ne doit être lancé en lecture : tous les projets ont
+  // leur iframe déjà chargée et le changement de projet gère le lecteur actif.
+  return;
+}
+
+async function performGoToProject(index, source = "auto") {
+  if (!sequenceStarted || viewerOpen) return;
+  const nextIndex = (index + projects.length) % projects.length;
+  const previousIndex = activeSlot;
+  if (nextIndex === currentIndex && nextIndex === activeSlot) {
+    if (source === "user") scheduleNextProject();
+    return;
+  }
+
+  clearTimeout(sequenceTimer);
+  sequenceTimer = null;
+  ++sequenceRequestToken;
+  ++preloadRequestToken; // invalide tout warm-up qui pourrait perturber le lecteur choisi
+  preparedIndex = null;
+  preparedSlot = null;
+
+  const project = projects[nextIndex];
+  const player = players[nextIndex];
+  applyFit(nextIndex, project.fit);
+
+  // Bascule visuelle immédiate : aucun loadVideo() et aucune attente de l'événement
+  // "playing". Chaque miniature possède déjà son propre lecteur Vimeo.
+  slides.forEach((slide, i) => {
+    slide.classList.toggle("active", i === nextIndex);
+    slide.classList.toggle("preparing", i !== nextIndex);
+  });
+  currentIndex = nextIndex;
+  navigationIndex = nextIndex;
+  activeSlot = nextIndex;
+  homepageProjectDescription.textContent = project.title;
+  manualTargetIndex = null;
+  updateSelectedThumbnail(nextIndex);
+  clearProgress();
+
+  // Le lecteur affiché et le projet courant doivent toujours partager le même
+  // index. On arrête tous les lecteurs cachés pour éviter qu'un ancien warm-up
+  // ou un préchargement continue à jouer un autre film en parallèle.
+  players.forEach((otherPlayer, i) => {
+    if (i !== nextIndex) {
+      void otherPlayer.pause().catch(() => {});
+      void otherPlayer.setMuted(true).catch(() => {});
+      void otherPlayer.setVolume(0).catch(() => {});
+    }
+  });
+  void player.setMuted(true).catch(() => {});
+  void player.setVolume(0).catch(() => {});
+  // Les projets démarrent à 0. Pour un start non nul, seek et play partent ensemble.
+  if (project.start) void player.setCurrentTime(project.start).catch(() => {});
+  void player.play().catch(() => {});
+
+  scheduleNextProject();
+  // Réchauffe le suivant en arrière-plan sans bloquer le survol.
+  void preloadNextProject();
+}
+
+/* CADRAGE DU LECTEUR PLEIN ÉCRAN : conserve le ratio du projet */
+function resizeViewerFrame(ratio = 16 / 9) {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  if (!viewportWidth || !viewportHeight || !Number.isFinite(ratio) || ratio <= 0) return;
+
+  let width = viewportWidth;
+  let height = width / ratio;
+  if (height > viewportHeight) {
+    height = viewportHeight;
+    width = height * ratio;
+  }
+
+  viewerFrame.style.width = `${width}px`;
+  viewerFrame.style.height = `${height}px`;
+}
+
+/* PRÉCHARGEMENT DU PROJET SUIVANT DANS UN SECOND LECTEUR VIMEO */
+async function preloadViewerProject(index) {
+  const targetIndex = (index + projects.length) % projects.length;
+  if ((viewerOpen && targetIndex === currentIndex) || preloadedViewerIndex === targetIndex) return;
+  if (viewerBufferPromise) {
+    if (viewerBufferTargetIndex === targetIndex) return viewerBufferPromise;
+    // Si un autre préchargement est en cours, enchaîner celui-ci ensuite
+    // au lieu de perdre la demande de la vidéo survolée.
+    const pendingTask = viewerBufferPromise;
+    try { await pendingTask; } catch (_) {}
+    if (preloadedViewerIndex === targetIndex) return;
+    return preloadViewerProject(targetIndex);
+  }
+
+  const project = projects[targetIndex];
+  viewerBufferTargetIndex = targetIndex;
+  const task = (async () => {
+    try {
+      await viewerBufferPlayer.ready();
+      await withTimeout(viewerBufferPlayer.setMuted(true), 1200);
+      await withTimeout(viewerBufferPlayer.setVolume(0), 1200);
+      await withTimeout(viewerBufferPlayer.loadVideo(Number(project.id)), 10000);
+      await withTimeout(viewerBufferPlayer.setLoop(true), 1200);
+      await withTimeout(viewerBufferPlayer.setCurrentTime(project.start || 0), 1500);
+      await withTimeout(viewerBufferPlayer.play(), 5000);
+      await withTimeout(viewerBufferPlayer.pause(), 1200);
+      preloadedViewerIndex = targetIndex;
+    } catch (error) {
+      console.warn("Préchargement Vimeo indisponible, chargement classique utilisé.", error);
+      preloadedViewerIndex = null;
+    }
+  })();
+  viewerBufferPromise = task;
+  try { await task; } finally {
+    if (viewerBufferPromise === task) {
+      viewerBufferPromise = null;
+      viewerBufferTargetIndex = null;
+    }
+  }
+}
+
+function swapViewerPlayers() {
+  const oldIframe = viewerIframe;
+  const oldPlayer = viewerPlayer;
+  oldIframe.classList.remove("active", "viewer-fit-portrait");
+  viewerBufferIframe.classList.add("active");
+  viewerIframe = viewerBufferIframe;
+  viewerPlayer = viewerBufferPlayer;
+  viewerBufferIframe = oldIframe;
+  viewerBufferPlayer = oldPlayer;
+  viewerIframe.classList.add("active");
+  viewerBufferIframe.classList.remove("active", "viewer-fit-portrait");
+  viewerIframe.id = "viewer-iframe";
+  viewerBufferIframe.id = "viewer-buffer";
+}
+
+/* OUVERTURE DU LECTEUR */
+
+async function openProjectViewer(index, returnPage = "home") {
+  if (!viewerOpen) viewerReturnPage = returnPage;
+  if (viewerOpen) {
+    await loadViewerProject(index, ++viewerRequestToken);
+    return;
+  }
+
+  viewerOpen = true;
+  document.body.classList.add("viewer-open");
+  manualHoverActive = false;
+  resumeAutoIndex = null;
+  const token = ++viewerRequestToken;
+
+  // Ne jamais lancer le lecteur viewer avant d'avoir chargé le projet demandé :
+  // son iframe contient initialement Louis Vuitton, ce qui provoquait l'audio
+  // de Louis Vuitton et un écran noir pendant le chargement de la bonne vidéo.
+  viewerFrame.classList.remove("ready");
+  viewerPlayer.setMuted(true).catch(() => {});
+  viewerPlayer.setVolume(0).catch(() => {});
+  viewerPlayer.pause().catch(() => {});
+  viewerBufferPlayer.setMuted(true).catch(() => {});
+  viewerBufferPlayer.setVolume(0).catch(() => {});
+  // Ne pas interrompre le préchargement en cours au moment du clic.
+
+  clearTimeout(sequenceTimer);
+  pendingProjectIndex = null;
+  pendingProjectSource = "auto";
+  manualTargetIndex = null;
+  ++progressAnimationToken;
+  ++sequenceRequestToken;
+  ++preloadRequestToken;
+
+  preparedIndex = null;
+  preparedSlot = null;
+
+  viewerFrame.classList.remove("ready");
+  projectViewer.classList.add("open", "instant-loading");
+  projectViewer.setAttribute("aria-hidden", "false");
+
+  requestAnimationFrame(() => {
+    projectViewer.classList.add("visible");
+  });
+
+  navigation.classList.add("visible");
+  document.getElementById("logo").style.opacity = "1";
+  document.getElementById("top-links").style.opacity = "1";
+  document.getElementById("top-links").style.pointerEvents = "auto";
+
+  // Garder la vidéo homepage visible derrière le viewer pendant le chargement Vimeo.
+  // Le lecteur plein écran devient opaque dès que le projet est prêt.
+  slides.forEach(slide => {
+    slide.style.visibility = "visible";
+  });
+
+  players.forEach(player => {
+    // Coupe immédiatement le son des lecteurs homepage pendant l'ouverture.
+    player.setMuted(true).catch(() => {});
+    player.setVolume(0).catch(() => {});
+    withTimeout(player.pause(), 800);
+  });
+
+  await loadViewerProject(index, token);
+}
+
+/* CHARGEMENT D'UN PROJET AVEC SON */
+
+async function loadViewerProject(index, token = viewerRequestToken) {
+  if (!viewerOpen) return;
+
+  const nextIndex = (index + projects.length) % projects.length;
+  const project = projects[nextIndex];
+
+  /* Rotation activée uniquement pour MONSIEUR PARIS */
+  const wasPreloaded = preloadedViewerIndex === nextIndex;
+  if (wasPreloaded) {
+    swapViewerPlayers();
+    preloadedViewerIndex = null;
+  }
+  viewerIframe.classList.toggle(
+    "viewer-fit-portrait",
+    project.id === "1225955279"
+  );
+
+  currentIndex = nextIndex;
+  viewerTitle.textContent = project.title;
+  updateSelectedThumbnail(currentIndex);
+
+  // Lors d'un changement dans le viewer, garder l'image actuelle visible
+  // jusqu'à ce que le nouveau projet soit prêt : ne pas réafficher le noir.
+  // À la toute première ouverture, le viewer est déjà masqué par instant-loading
+  // et la homepage reste visible derrière lui.
+  resizeViewerFrame(16 / 9);
+
+  try {
+    await viewerPlayer.ready();
+    if (!wasPreloaded) {
+      await withTimeout(viewerPlayer.loadVideo(Number(project.id)), 10000);
+    }
+    if (!viewerOpen || token !== viewerRequestToken) return;
+
+    // Prépare le bon projet avant de l'afficher ou d'activer son son.
+    // On évite ainsi d'entendre le projet précédent pendant le seek.
+    await withTimeout(viewerPlayer.setMuted(true), 1200);
+    await withTimeout(viewerPlayer.setVolume(0), 1200);
+    await withTimeout(viewerPlayer.setLoop(true), 1200);
+
+    if (!viewerOpen || token !== viewerRequestToken) return;
+
+    let ratio = 16 / 9;
+
+    if (project.id !== "1225955279") {
+      try {
+        const [width, height] = await Promise.all([
+          viewerPlayer.getVideoWidth(),
+          viewerPlayer.getVideoHeight()
+        ]);
+
+        if (width > 0 && height > 0) ratio = width / height;
+      } catch (error) {
+        console.warn("Dimensions vidéo indisponibles.", error);
+      }
+    }
+
+    if (!viewerOpen || token !== viewerRequestToken) return;
+
+    viewerAspectRatio = ratio;
+    resizeViewerFrame(ratio);
+
+    await withTimeout(viewerPlayer.setCurrentTime(project.start || 0), 1500);
+    if (!viewerOpen || token !== viewerRequestToken) return;
+
+    // Démarre la vidéo demandée, puis réactive le son sans recharger le projet.
+    await withTimeout(viewerPlayer.play(), 5000);
+    if (!viewerOpen || token !== viewerRequestToken) return;
+
+    viewerFrame.classList.add("ready");
+    projectViewer.classList.remove("instant-loading");
+    slides.forEach(slide => { slide.style.visibility = "hidden"; });
+    await withTimeout(viewerPlayer.setVolume(1), 1200);
+    await withTimeout(viewerPlayer.setMuted(false), 1200);
+    if (!viewerOpen || token !== viewerRequestToken) return;
+    void preloadViewerProject((nextIndex + 1) % projects.length);
+
+  } catch (error) {
+    console.warn("Impossible de lancer le projet :", error);
+  }
+}
+
+/* FERMETURE DU LECTEUR */
+
+function closeProjectViewer() {
+  if (!viewerOpen) return;
+
+  viewerOpen = false;
+  pendingProjectIndex = null;
+  pendingProjectSource = "auto";
+  manualTargetIndex = null;
+  ++viewerRequestToken;
+  ++preloadRequestToken;
+
+  preparedIndex = null;
+  preparedSlot = null;
+
+  projectViewer.classList.remove("visible");
+  projectViewer.setAttribute("aria-hidden", "true");
+
+  withTimeout(viewerPlayer.pause(), 800);
+  withTimeout(viewerBufferPlayer.pause(), 800);
+  preloadedViewerIndex = null;
+
+  setTimeout(async () => {
+    if (viewerOpen) return;
+
+    projectViewer.classList.remove("open", "instant-loading");
+    document.body.classList.remove("viewer-open");
+    viewerFrame.classList.remove("ready");
+    viewerFrame.style.width = "";
+    viewerFrame.style.height = "";
+
+    slides.forEach(slide => {
+      slide.style.visibility = "visible";
+    });
+
+    document.getElementById("logo").style.opacity = "1";
+    document.getElementById("top-links").style.opacity = "1";
+    document.getElementById("top-links").style.pointerEvents = "auto";
+
+    if (viewerReturnPage === "work") {
+      openWorkPage();
+      viewerReturnPage = "home";
+      return;
+    }
+
+    document.body.classList.remove("work-open", "about-open", "contact-open");
+    navigation.classList.add("visible");
+
+    const project = projects[currentIndex];
+    const token = ++sequenceRequestToken;
+
+    applyFit(activeSlot, project.fit);
+
+    try {
+      await withTimeout(players[activeSlot].setMuted(true), 500);
+      await withTimeout(players[activeSlot].setVolume(0), 500);
+      await withTimeout(players[activeSlot].setCurrentTime(project.start || 0), 700);
+      await withTimeout(players[activeSlot].play(), 900);
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === activeSlot);
+        slide.classList.toggle("preparing", i !== activeSlot);
+      });
+
+    } catch (error) {
+      console.warn("Reprise de la homepage :", error);
+    }
+
+    if (viewerOpen || token !== sequenceRequestToken) return;
+
+    manualHoverActive = false;
+    resumeAutoIndex = null;
+    updateSelectedThumbnail(currentIndex);
+    scheduleNextProject();
+  }, 220);
+}
+
+/* BOUTONS DU LECTEUR */
+
+document.getElementById("viewer-previous").addEventListener("click", () => {
+  loadViewerProject(
+    (currentIndex - 1 + projects.length) % projects.length,
+    ++viewerRequestToken
+  );
+});
+
+document.getElementById("viewer-next").addEventListener("click", () => {
+  loadViewerProject(
+    (currentIndex + 1) % projects.length,
+    ++viewerRequestToken
+  );
+});
+
+document.getElementById("viewer-close").addEventListener(
+  "click",
+  closeProjectViewer
+);
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    if (viewerOpen) {
+      closeProjectViewer();
+    } else {
+      closeInfoPanels();
+    }
+    return;
+  }
+
+  if (!viewerOpen) return;
+
+  if (event.key === "ArrowLeft") {
+    loadViewerProject(
+      (currentIndex - 1 + projects.length) % projects.length,
+      ++viewerRequestToken
+    );
+  } else if (event.key === "ArrowRight") {
+    loadViewerProject(
+      (currentIndex + 1) % projects.length,
+      ++viewerRequestToken
+    );
+  }
+});
+
+/* TRACKPAD : DÉFILEMENT CONTINU */
+
+navigation.addEventListener("wheel", event => {
+  if (viewerOpen) return;
+
+  const hasHorizontalGesture =
+    Math.abs(event.deltaX) > Math.abs(event.deltaY) * 0.35;
+  const delta = hasHorizontalGesture ? event.deltaX : event.deltaY;
+  if (delta === 0) return;
+
+  event.preventDefault();
+
+  // Conserver le défilement naturel du trackpad. La sélection se fait au survol.
+  const sensitivity = event.deltaMode === 1 ? 16 : 1;
+  setTrackTarget(trackTarget - delta * sensitivity, "user");
+}, { passive: false });
+
+/* DÉPLACEMENT À LA SOURIS */
+
+let pointerStartY = 0;
+let pointerStartTranslate = 0;
+let pointerDown = false;
+let pointerMoved = false;
+
+navigation.addEventListener("pointerdown", event => {
+  if (event.target.closest(".project")) return;
+
+  pointerDown = true;
+  pointerMoved = false;
+  pointerStartY = event.clientY;
+  pointerStartTranslate = trackTarget;
+});
+
+navigation.addEventListener("pointermove", event => {
+  if (!pointerDown) return;
+
+  const delta = event.clientY - pointerStartY;
+  if (Math.abs(delta) > 3) pointerMoved = true;
+
+  setTrackTarget(pointerStartTranslate + delta, "user");
+});
+
+["pointerup", "pointercancel", "pointerleave"].forEach(name => {
+  navigation.addEventListener(name, () => {
+    pointerDown = false;
+  });
+});
+
+document.getElementById("logo").addEventListener("click", event => {
+  event.preventDefault();
+  closeInfoPanels();
+});
+
+/* DÉMARRAGE */
+
+function resetThumbnailRailForSequenceStart() {
+  // Le rail peut avoir été recyclé pendant l'intro. On remet les miniatures
+  // dans l'ordre des projets avant de démarrer le lecteur sur Louis Vuitton.
+  const orderedItems = Array.from(thumbnailTrack.querySelectorAll(".project"))
+    .sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index));
+
+  orderedItems.forEach(item => thumbnailTrack.appendChild(item));
+  thumbnailItems.splice(0, thumbnailItems.length, ...orderedItems);
+
+  trackPosition = 0;
+  trackTarget = 0;
+  previousTrackPosition = 0;
+  lastTrackTimestamp = 0;
+  lastScrollTriggeredIndex = null;
+  previousItemCenters = [];
+  thumbnailTrack.style.transform = "translate3d(0, 0, 0)";
+}
+
+async function startSequence() {
+  if (sequenceStarted) return;
+
+  resetThumbnailRailForSequenceStart();
+  sequenceStarted = true;
+  currentIndex = 0;
+  navigationIndex = 0;
+  activeSlot = 0;
+  homepageProjectDescription.textContent = projects[0].title;
+
+  applyFit(0, projects[0].fit);
+
+  slides.forEach((slide, i) => {
+    slide.classList.toggle("active", i === 0);
+    slide.classList.toggle("preparing", i !== 0);
+  });
+
+  navigation.classList.add("visible");
+  updateSelectedThumbnail(0);
+
+  // Louis Vuitton est déjà pré-démarré pendant l'intro. Ces commandes sont
+  // envoyées en parallèle pour ne pas retarder l'affichage du carrousel.
+  void Promise.allSettled([
+    players[0].setMuted(true),
+    players[0].setVolume(0),
+    players[0].play()
+  ]);
+
+  scheduleNextProject();
+  // Précharge progressivement les premières images des autres projets.
+  void warmProjectPlayers();
+}
+
+/* INTRO : on laisse le logo se jouer en entier, puis les miniatures se révèlent une à une.
+   Elles rejoignent ensuite la position du rail ; les éléments de la homepage n'apparaissent
+   qu'à la fin du déplacement, pour éviter une coupure visuelle. */
+document.body.classList.add("intro-hidden");
+
+// Logo seul au début, puis fondu de sortie.
+setTimeout(() => {
+  intro.classList.add("logo-out");
+}, 3600);
+
+// Les miniatures arrivent une par une, avec chevauchement des fondus.
+setTimeout(() => {
+  intro.classList.add("thumbnails-in");
+}, 4050);
+
+// Lance Louis Vuitton en sourdine avant la fin de l'intro : Vimeo a ainsi le temps
+// de charger et démarrer la vidéo derrière l'overlay, sans attente après la miniature.
+setTimeout(() => {
+  // Démarre Louis Vuitton avant la fin du mouvement des miniatures. Les appels
+  // parallèles évitent d'attendre chaque réponse Vimeo l'une après l'autre.
+  void Promise.allSettled([
+    players[0].setMuted(true),
+    players[0].setVolume(0),
+    players[0].play()
+  ]);
+}, 4300);
+
+// Elles deviennent ensuite les éléments du carrousel : déplacement + mise à l'échelle
+// vers les coordonnées exactes du rail réel. L'interface apparaît pendant ce mouvement,
+// derrière les mêmes vignettes, puis l'overlay s'efface une fois le raccord terminé.
+setTimeout(() => {
+  const introItems = Array.from(introThumbnails.querySelectorAll(".intro-thumb"));
+
+  // Stabilise d'abord le vrai carrousel dans son état d'arrivée définitif.
+  // Cela évite que startSequence() réordonne ensuite les miniatures sous l'overlay.
+  resetThumbnailRailForSequenceStart();
+  thumbnailItems.forEach(item => item.classList.toggle("selected", Number(item.dataset.index) === 0));
+  navigation.style.transition = "none";
+  navigation.classList.add("visible");
+  document.body.classList.remove("intro-hidden");
+  document.body.classList.add("intro-revealing");
+  void navigation.offsetWidth;
+
+  // Mesure les positions au centre, puis sort les vignettes du conteneur animé.
+  // Important : .intro-thumbnails possède un transform, qui devient un bloc de
+  // référence pour les enfants en position:fixed. Si on les laisse dedans,
+  // retirer ce transform pendant le changement de layout les téléporte à droite.
+  // En les replaçant directement sous body, leurs coordonnées restent celles de
+  // la fenêtre et le mouvement démarre exactement de leur position centrale.
+  const starts = introItems.map(item => item.getBoundingClientRect());
+  introItems.forEach((item, i) => {
+    const r = starts[i];
+    item.style.transition = "none";
+    item.style.position = "fixed";
+    item.style.left = `${r.left}px`;
+    item.style.top = `${r.top}px`;
+    item.style.width = `${r.width}px`;
+    item.style.height = `${r.height}px`;
+    item.style.margin = "0";
+    item.style.zIndex = "201";
+    item.style.opacity = ".88";
+    item.style.transform = "none";
+    document.body.appendChild(item);
+  });
+  // Force l'application des coordonnées dans leur nouveau parent (body).
+  void introItems[0].offsetWidth;
+  intro.classList.add("thumbnails-left");
+  void introThumbnails.offsetWidth;
+  // Réactive les transitions explicitement : les vignettes sont désormais
+  // indépendantes du conteneur et ne peuvent plus changer d'origine.
+  introItems.forEach(item => {
+    item.style.transition = "left 1.65s cubic-bezier(.22,.75,.18,1), top 1.65s cubic-bezier(.22,.75,.18,1), width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1), opacity .4s ease";
+    const imageFrame = item.querySelector(".intro-thumb-image-frame");
+    if (imageFrame) imageFrame.style.transition = "width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1)";
+  });
+  void introItems[0].offsetWidth;
+
+  // Mesure après stabilisation du layout : destinations exactes du rail, titres compris.
+  // On attend deux frames pour garantir que les positions de départ sont peintes avant le déplacement.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const realItems = Array.from(thumbnailTrack.querySelectorAll(".project"));
+    const destinations = realItems.map(item => ({
+      rect: item.getBoundingClientRect(),
+      image: item.querySelector(".project-thumb").getBoundingClientRect(),
+      title: item.querySelector(".project-title").getBoundingClientRect(),
+      opacity: getComputedStyle(item).opacity
+    }));
+
+    // Force la lecture de la géométrie des éléments fixes à leur point de départ.
+    introItems.forEach(item => void item.getBoundingClientRect());
+    requestAnimationFrame(() => {
+      introItems.forEach((item, i) => {
+        const target = destinations[i];
+        if (!target) return;
+        item.style.left = `${target.rect.left}px`;
+        item.style.top = `${target.rect.top}px`;
+        item.style.width = `${target.rect.width}px`;
+        item.style.height = `${target.rect.height}px`;
+        const frame = item.querySelector(".intro-thumb-image-frame");
+        frame.style.width = `${target.image.width}px`;
+        frame.style.height = `${target.image.height}px`;
+        item.querySelector(".intro-thumb-title").style.width = `${target.title.width}px`;
+        item.querySelector(".intro-thumb-title").style.opacity = "0";
+        item.style.opacity = target.opacity;
+      });
+      // Les titres apparaissent seulement quand le déplacement des vignettes est terminé.
+      setTimeout(() => {
+        document.body.classList.add("intro-titles-visible");
+        introItems.forEach(item => {
+          const title = item.querySelector(".intro-thumb-title");
+          if (title) title.style.opacity = "1";
+        });
+      }, 1650);
+    });
+  }));
+}, 5500);
+
+setTimeout(() => {
+  intro.classList.add("hide");
+  setTimeout(() => {
+    intro.style.display = "none";
+    // Les vignettes animées sont des éléments temporaires sous body : retire-les
+    // après la transition, le vrai rail étant déjà visible exactement dessous.
+    document.querySelectorAll("body > .intro-thumb").forEach(item => item.remove());
+    navigation.style.transition = "";
+    document.body.classList.remove("intro-revealing");
+    startSequence();
+  }, 850);
+}, INTRO_DURATION);
+
+/* REDIMENSIONNEMENT */
+
+window.addEventListener("resize", () => {
+  trackTarget = clampTrackPosition(trackTarget);
+  trackPosition = clampTrackPosition(trackPosition);
+
+  thumbnailTrack.style.transform =
+    `translate3d(0, ${trackPosition}px, 0)`;
+
+  if (viewerOpen) resizeViewerFrame(viewerAspectRatio);
+});
+</script>
+
+</body>
+</html>
