@@ -6,6 +6,14 @@
 <title>BIFACE</title>
 
 <style>
+@font-face {
+  font-family: "Agrandir";
+  src: url("Agrandir-Regular.otf") format("opentype") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -27,15 +35,38 @@ body { position: relative; }
 #intro { position:fixed; inset:0; z-index:200; overflow:hidden; background:#000; opacity:1; transition:opacity .85s ease; }
 #intro.hide { opacity:0; pointer-events:none; }
 #intro-logo { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:1; transition:opacity 1s ease; }
-#intro-logo iframe { display:block; width:min(82vw,1100px); height:min(46.125vw,619px); border:0; }
+#intro-logo iframe { display:block; width:min(27.5vw,363px); height:min(15.47vw,205px); border:0; }
 #intro.logo-out #intro-logo { opacity:0; }
+/* Curseur typographique BIFACE, uniquement sur les appareils avec pointeur. */
+#biface-cursor { position:fixed; z-index:10000; left:0; top:0; pointer-events:none; color:#fff; font-family:"Agrandir", Arial, Helvetica, sans-serif; font-size:11px; line-height:1; letter-spacing:.25px; text-transform:uppercase; white-space:nowrap; opacity:0; transform:translate(14px, 14px); mix-blend-mode:difference; transition:opacity .15s ease; }
+@media (hover:hover) and (pointer:fine) {
+  body, body * { cursor:none !important; }
+  #biface-cursor.visible { opacity:1; }
+  /* Rétablit le curseur natif sur les contrôles de navigation et dans le lecteur plein écran. */
+  body.cursor-native,
+  body.cursor-native * { cursor:auto !important; }
+  body.cursor-native a,
+  body.cursor-native button,
+  body.cursor-native [role="button"] { cursor:pointer !important; }
+  body.cursor-native .viewer-close,
+  body.cursor-native .viewer-prev,
+  body.cursor-native .viewer-next { cursor:pointer !important; }
+  body.viewer-open,
+  body.viewer-open * { cursor:auto !important; }
+  body.viewer-open button,
+  body.viewer-open a,
+  body.viewer-open [role="button"] { cursor:pointer !important; }
+  body.cursor-native #biface-cursor,
+  body.viewer-open #biface-cursor { opacity:0 !important; }
+}
+@media (hover:none), (pointer:coarse) { #biface-cursor { display:none !important; } }
 .intro-thumbnails { position:absolute; top:50%; left:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; width:128px; max-height:92vh; padding:0; opacity:1; transform:translate(-50%,-50%); transition:left 2.35s cubic-bezier(.2,.72,.22,1), top 2.35s cubic-bezier(.2,.72,.22,1), transform 2.35s cubic-bezier(.2,.72,.22,1), gap 2.35s ease, width 2.35s cubic-bezier(.2,.72,.22,1); }
 .intro-thumb { display:flex; flex:0 0 auto; align-items:center; gap:10px; width:128px; min-height:45px; opacity:0; transform:translateY(-12px) scale(.98); transition:opacity .55s ease, transform .65s cubic-bezier(.2,.7,.2,1), width 2.35s cubic-bezier(.2,.72,.22,1), min-height 2.35s cubic-bezier(.2,.72,.22,1); }
 .intro-thumb-image-frame { display:block; position:relative; flex:0 0 auto; width:80px; height:45px; overflow:hidden; line-height:0; background:#161616; transition:width 2.35s cubic-bezier(.2,.72,.22,1), height 2.35s cubic-bezier(.2,.72,.22,1); }
 .intro-thumb-image-frame img { display:block; width:100%; height:100%; object-fit:cover; background:#161616; }
 .intro-thumb.crop-14 .intro-thumb-image-frame img { transform:scale(1.4); transform-origin:center center; }
 .intro-thumb img { display:block; }
-.intro-thumb-title { display:block; flex:1 1 auto; min-width:0; color:#fff; font-size:11px; font-weight:500; letter-spacing:.35px; line-height:1.35; text-transform:uppercase; opacity:0; overflow:hidden; transition:opacity .45s ease; }
+.intro-thumb-title { display:block; flex:1 1 auto; min-width:0; color:#fff; font-family:"Agrandir", Arial, Helvetica, sans-serif; font-size:11px; font-weight:500; letter-spacing:.35px; line-height:1.35; text-transform:uppercase; opacity:0; overflow:hidden; transition:opacity .45s ease; }
 #intro.thumbnails-in .intro-thumb { opacity:.88; transform:translateY(0) scale(1); }
 #intro.thumbnails-in .intro-thumb:nth-child(1) { transition-delay:0s; }
 #intro.thumbnails-in .intro-thumb:nth-child(2) { transition-delay:.10s; }
@@ -54,8 +85,16 @@ body { position: relative; }
 #intro.thumbnails-left .intro-thumb { position:absolute; margin:0; gap:10px; min-height:0; opacity:.62; transform:none; transition:left 1.65s cubic-bezier(.22,.75,.18,1), top 1.65s cubic-bezier(.22,.75,.18,1), width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1), opacity .4s ease; }
 #intro.thumbnails-left .intro-thumb-image-frame { width:112px; height:63px; transition:width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1); }
 #intro.thumbnails-left .intro-thumb-title { opacity:0; transition:opacity .45s ease; }
+
+/* Intro simplifiée : les miniatures restent sur place et disparaissent en fondu. */
+#intro.thumbnails-out .intro-thumbnails { opacity:0; transition:opacity .8s ease; }
+#intro.thumbnails-out .intro-thumb { transition:opacity .55s ease, transform .55s ease; }
+#intro.thumbnails-out .intro-thumb { opacity:0 !important; }
+#intro.thumbnails-left .intro-thumbnails { left:50%; top:50%; inset:auto; width:128px; max-height:92vh; display:flex; padding:0; transform:translate(-50%,-50%); gap:3px; }
+#intro.thumbnails-left .intro-thumb { position:static; width:128px; min-height:45px; margin:0; }
+
 /* Le vrai rail apparaît sous les vignettes de l'intro avant que l'overlay ne s'efface. */
-#logo, #top-links, #navigation, #homepage-project-description, #video-stage { transition:opacity .8s ease; }
+#logo, #top-links, #navigation, #homepage-project-description, #video-stage { transition:opacity .24s ease; }
 /* Les titres attendent que les miniatures aient terminé leur déplacement. */
 body.intro-revealing:not(.intro-titles-visible) .project-title { opacity:0; }
 body.intro-titles-visible .project-title { transition:opacity .45s ease; }
@@ -231,6 +270,29 @@ body.about-open #about-close, body.contact-open #contact-close { top: 25px; righ
   overflow-y: auto;
 }
 #work-panel.open { display: block; }
+#work-filters {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:9px 22px;
+  width:100%;
+  margin:0 auto 44px;
+}
+.work-filter {
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#777;
+  font-family:"Agrandir", Arial, Helvetica, sans-serif;
+  font-size:10px;
+  line-height:1.5;
+  letter-spacing:.1px;
+  text-transform:uppercase;
+  transition:color .2s ease, opacity .2s ease;
+  cursor:pointer;
+}
+.work-filter:hover, .work-filter.active { color:#fff; }
+.work-filter.active { text-decoration:underline; text-underline-offset:4px; }
 #work-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -240,6 +302,7 @@ body.about-open #about-close, body.contact-open #contact-close { top: 25px; righ
   max-width: none;
   margin: 0 auto;
 }
+.work-card[hidden] { display:none !important; }
 .work-card {
   display: block;
   min-width: 0;
@@ -281,6 +344,7 @@ body.about-open #about-close, body.contact-open #contact-close { top: 25px; righ
 }
 .work-card-copy { min-width: 0; }
 .work-card-title {
+  font-family: "Agrandir", Arial, Helvetica, sans-serif;
   display: block;
   width: 100%;
   font-size: 10px;
@@ -290,6 +354,7 @@ body.about-open #about-close, body.contact-open #contact-close { top: 25px; righ
   text-transform: uppercase;
 }
 .work-card-directed {
+  font-family: "Agrandir", Arial, Helvetica, sans-serif;
   display: block;
   margin-top: 2px;
   color: #999;
@@ -297,6 +362,7 @@ body.about-open #about-close, body.contact-open #contact-close { top: 25px; righ
   line-height: 1.35;
 }
 .work-card-type {
+  font-family: "Agrandir", Arial, Helvetica, sans-serif;
   display: block;
   color: #999;
   font-size: 10px;
@@ -516,6 +582,7 @@ body.viewer-open #homepage-project-description {
 }
 
 .project-title {
+  font-family:"Agrandir", Arial, Helvetica, sans-serif;
   display: -webkit-box;
   flex: 1 1 auto;
   width: auto;
@@ -765,10 +832,37 @@ body.viewer-open .intro-thumbnails {
   #work-grid { grid-template-columns: 1fr; row-gap: 34px; }
   #work-panel { padding-left: 16px; padding-right: 16px; }
 }
+
+/* Ajustements de navigation et typographie des pages About / Contact. */
+#top-links a {
+  display: inline-block;
+  padding: 10px 7px;
+  margin: -10px -7px;
+}
+body.about-open #logo {
+  z-index: 110 !important;
+}
+#about-copy,
+#contact-panel .contact-links,
+#contact-panel a {
+  font-family: "Agrandir", Arial, Helvetica, sans-serif !important;
+}
+
+/* Agrandir pour les titres et textes des projets, hors navigation et boutons Close. */
+.project-title,
+#homepage-project-description,
+.intro-thumb-title,
+.work-card-title,
+.work-card-directed,
+.work-card-type {
+  font-family: "Agrandir", Arial, Helvetica, sans-serif !important;
+}
+
 </style>
 </head>
 
 <body>
+<div id="biface-cursor" aria-hidden="true">BIFACE</div>
 
 <div id="intro" aria-hidden="true">
   <div id="intro-logo">
@@ -777,7 +871,7 @@ body.viewer-open .intro-thumbnails {
   <div class="intro-thumbnails" id="intro-thumbnails"></div>
 </div>
 
-<a href="#" id="logo" aria-label="BIFACE"><img src="logo-biface.png" alt="BIFACE"></a>
+<a href="#" id="logo" aria-label="BIFACE"><img src="biface-logo.png" alt="BIFACE"></a>
 
 <!-- NOUVELLES RUBRIQUES -->
 <nav id="top-links" aria-label="Main navigation">
@@ -789,6 +883,11 @@ body.viewer-open .intro-thumbnails {
 <!-- PAGE WORK -->
 <section class="info-panel" id="work-panel" aria-hidden="true">
   <button class="info-panel-close" id="work-close" type="button">Close ×</button>
+  <nav id="work-filters" aria-label="Filter films by category">
+    <button class="work-filter active" type="button" data-filter="all" aria-pressed="true">All</button>
+    <button class="work-filter" type="button" data-filter="Luxury / Fashion Films" aria-pressed="false">Luxury / Fashion Films</button>
+    <button class="work-filter" type="button" data-filter="Commercials" aria-pressed="false">Commercials</button>
+  </nav>
   <div id="work-grid"></div>
 </section>
 
@@ -874,7 +973,7 @@ body.viewer-open .intro-thumbnails {
 const INTRO_DURATION = 9000;
 const CLIP_DURATION = 7000;
 
-const projects = [
+const allProjects = [
   { id: "1224954207", title: "LOUIS VUITTON — FRAGMENT OF HISTORY", fit: "standard", start: 0 },
   { id: "1188662943", title: "INITIO — HEDONIST", fit: "standard", start: 0 },
   { id: "1188661684", title: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", fit: "standard", start: 0 },
@@ -886,8 +985,23 @@ const projects = [
   { id: "1224978393", title: "LEBONCOIN — L'INVENTAIRE", fit: "standard", start: 0 },
   { id: "1225955279", title: "MONSIEUR PARIS", fit: "portrait", start: 0 },
   { id: "1230217532", title: "PARFUMS DE MARLY - BLEU ROI", fit: "standard", start: 0 },
-  { id: "1239804969", title: "ANAVE - SERUM SEA HEALER", fit: "standard", start: 0 }
+  { id: "1239804969", title: "ANAVE - SERUM SEA HEALER", fit: "standard", start: 0 },
+  { id: "1240200299", title: "OPÉRA — ST DUPONT", fit: "standard", start: 0 }
 ];
+
+// La homepage ne montre que cette sélection. Le catalogue complet reste disponible dans WORK.
+const homepageProjectIds = [
+  "1224954207", // Louis Vuitton
+  "1230217532", // Parfums de Marly
+  "1188661684", // Warren Zaïre-Emery
+  "1239804969", // ANAVÉ
+  "1188662943", // INITIO
+  "1225688145", // ST Dupont — My Mother's Bag
+  "1231024530", // Liquide Imaginaire
+  "1225919914", // Antoine Dupont
+  "1240200299"  // Opéra — ST Dupont
+];
+const projects = homepageProjectIds.map(id => allProjects.find(project => project.id === id)).filter(Boolean);
 
 const intro = document.getElementById("intro");
 const introThumbnails = document.getElementById("intro-thumbnails");
@@ -907,6 +1021,7 @@ const aboutLink = document.getElementById("about-link");
 const contactLink = document.getElementById("contact-link");
 const workLink = document.getElementById("work-link");
 let viewerReturnPage = "home";
+let viewerPlaylist = projects;
 
 function closeInfoPanels() {
   aboutPanel.classList.remove("open");
@@ -999,6 +1114,7 @@ const slides = Array.from(videoStage.querySelectorAll(".video-slide"));
 const iframes = Array.from(videoStage.querySelectorAll("iframe"));
 const players = iframes.map(iframe => new Vimeo.Player(iframe));
 let viewerPlayer = new Vimeo.Player(viewerIframe);
+let monsieurTimeGuard = null;
 let viewerBufferPlayer = new Vimeo.Player(viewerBufferIframe);
 let preloadedViewerIndex = null;
 let viewerBufferPromise = null;
@@ -1270,26 +1386,53 @@ projects.forEach((project, index) => {
 
 /* WORK : ORDRE INDÉPENDANT DE LA HOMEPAGE */
 const workOrder = [
-  { id: "1224954207", title: "LOUIS VUITTON — FRAGMENT OF HISTORY", displayTitle: "LOUIS VUITTON", type: "Storytelling, Craftsmanship" },
-  { id: "1188662943", title: "INITIO — HEDONIST", displayTitle: "INITIO — HEDONIST", type: "Fragrance, Artistic Film" },
-  { id: "1188661684", title: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", displayTitle: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", type: "Fashion" },
-  { id: "1225919914", title: "À L'INTÉRIEUR × ANTOINE DUPONT", displayTitle: "ANTOINE DUPONT — À L'INTÉRIEUR", type: "Sport, Lifestyle" },
-  { id: "1230217532", title: "PARFUMS DE MARLY — BLEU ROI", displayTitle: "PARFUMS DE MARLY — BLEU ROI", type: "Fragrance, Craftsmanship" },
-  { id: "1231024530", title: "LIQUIDE IMAGINAIRE", displayTitle: "LIQUIDE IMAGINAIRE", type: "Fragrance" },
-  { id: "1239804969", title: "ANAVÉ — SERUM SEA HEALER", displayTitle: "ANAVÉ — SERUM SEA HEALER", type: "Beauty" },
-  { id: "1225688145", title: "ST DUPONT — MY MOTHER'S BAG", displayTitle: "ST DUPONT — FÊTE DES MÈRES", type: "Luxury, Storytelling" },
-  { id: "1188664994", title: "RILES — INTO THE FLAMME", displayTitle: "RILES — INTO THE FLAMME", type: "Fashion, Music" },
-  { id: "1225919946", title: "ADIDAS RS15 PRO × ANTOINE DUPONT", displayTitle: "ADIDAS RS15 PRO × ANTOINE DUPONT", type: "Campaign, Sportswear" },
-  { id: "1224978393", title: "LEBONCOIN — L'INVENTAIRE", displayTitle: "LEBONCOIN — L'INVENTAIRE", type: "Campaign, Lifestyle" },
-  { id: "1225955279", title: "MONSIEUR PARIS", displayTitle: "MONSIEUR PARIS", type: "Jewellery, Luxury" }
+  { id: "1224954207", title: "LOUIS VUITTON — FRAGMENT OF HISTORY", displayTitle: "LOUIS VUITTON", type: "Luxury / Fashion Films" },
+  { id: "1230217532", title: "PARFUMS DE MARLY — BLEU ROI", displayTitle: "PARFUMS DE MARLY — BLEU ROI", type: "Luxury / Fashion Films" },
+  { id: "1188661684", title: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", displayTitle: "WARREN ZAÏRE-EMERY FOR LOUIS VUITTON", type: "Luxury / Fashion Films" },
+  { id: "1239804969", title: "ANAVÉ — SERUM SEA HEALER", displayTitle: "ANAVÉ — SERUM SEA HEALER", type: "Commercials" },
+  { id: "1225919914", title: "À L'INTÉRIEUR × ANTOINE DUPONT", displayTitle: "ANTOINE DUPONT — À L'INTÉRIEUR", type: "Luxury / Fashion Films" },
+  { id: "1231024530", title: "LIQUIDE IMAGINAIRE", displayTitle: "LIQUIDE IMAGINAIRE", type: "Luxury / Fashion Films" },
+  { id: "1225688145", title: "ST DUPONT — MY MOTHER'S BAG", displayTitle: "ST DUPONT — FÊTE DES MÈRES", type: "Commercials" },
+  { id: "1188662943", title: "INITIO — HEDONIST", displayTitle: "INITIO — HEDONIST", type: "Luxury / Fashion Films" },
+  { id: "1225919946", title: "ADIDAS RS15 PRO × ANTOINE DUPONT", displayTitle: "ADIDAS RS15 PRO × ANTOINE DUPONT", type: "Commercials" },
+  { id: "1188664994", title: "RILES — INTO THE FLAMME", displayTitle: "RILES — INTO THE FLAMME", type: "Luxury / Fashion Films" },
+  { id: "1240200299", title: "OPÉRA — ST DUPONT", displayTitle: "ST DUPONT — OPÉRA", type: "Commercials" },
+  { id: "1224978393", title: "LEBONCOIN — L'INVENTAIRE", displayTitle: "LEBONCOIN — L'INVENTAIRE", type: "Luxury / Fashion Films" },
+  { id: "1225955279", title: "MONSIEUR PARIS", displayTitle: "MONSIEUR PARIS", type: "Luxury / Fashion Films" }
 ];
 const workGrid = document.getElementById("work-grid");
+const workFilterButtons = Array.from(document.querySelectorAll(".work-filter"));
+let selectedWorkFilter = "all";
+function applyWorkFilter(filter, updateSelection = true) {
+  if (updateSelection) selectedWorkFilter = filter;
+  workFilterButtons.forEach(button => {
+    const active = button.dataset.filter === filter;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(button.dataset.filter === selectedWorkFilter));
+  });
+  Array.from(workGrid.querySelectorAll(".work-card")).forEach(card => {
+    const categories = (card.dataset.categories || "").toLowerCase().split(",").map(value => value.trim());
+    const matches = filter === "all" || categories.includes(filter.toLowerCase());
+    card.hidden = !matches;
+  });
+}
+workFilterButtons.forEach(button => {
+  button.addEventListener("mouseenter", () => applyWorkFilter(button.dataset.filter, false));
+  button.addEventListener("focus", () => applyWorkFilter(button.dataset.filter, false));
+  button.addEventListener("click", () => applyWorkFilter(button.dataset.filter, true));
+});
+document.getElementById("work-filters").addEventListener("mouseleave", () => applyWorkFilter(selectedWorkFilter, false));
+document.getElementById("work-filters").addEventListener("focusout", event => {
+  if (!event.relatedTarget || !event.currentTarget.contains(event.relatedTarget)) applyWorkFilter(selectedWorkFilter, false);
+});
 workOrder.forEach(workProject => {
+  const fullProject = allProjects.find(project => project.id === workProject.id);
+  if (!fullProject) return;
   const index = projects.findIndex(project => project.id === workProject.id);
-  if (index < 0) return;
   const card = document.createElement("button");
   card.type = "button";
   card.className = "work-card" + (["1225919946", "1225919914"].includes(workProject.id) ? " crop-14" : "");
+  card.dataset.categories = workProject.type;
   card.setAttribute("aria-label", `Ouvrir ${workProject.title}`);
   const imageFrame = document.createElement("span");
   imageFrame.className = "work-image-frame";
@@ -1321,7 +1464,10 @@ workOrder.forEach(workProject => {
   imageFrame.appendChild(image);
   card.appendChild(imageFrame);
   card.appendChild(meta);
-  card.addEventListener("click", () => openProjectViewer(index, "work"));
+  card.addEventListener("click", () => {
+    const workIndex = allProjects.findIndex(project => project.id === workProject.id);
+    if (workIndex >= 0) openProjectViewer(workIndex, "work");
+  });
   workGrid.appendChild(card);
 });
 
@@ -1680,7 +1826,10 @@ function swapViewerPlayers() {
 /* OUVERTURE DU LECTEUR */
 
 async function openProjectViewer(index, returnPage = "home") {
-  if (!viewerOpen) viewerReturnPage = returnPage;
+  if (!viewerOpen) {
+    viewerReturnPage = returnPage;
+    viewerPlaylist = returnPage === "work" ? allProjects : projects;
+  }
   if (viewerOpen) {
     await loadViewerProject(index, ++viewerRequestToken);
     return;
@@ -1748,8 +1897,8 @@ async function openProjectViewer(index, returnPage = "home") {
 async function loadViewerProject(index, token = viewerRequestToken) {
   if (!viewerOpen) return;
 
-  const nextIndex = (index + projects.length) % projects.length;
-  const project = projects[nextIndex];
+  const nextIndex = (index + viewerPlaylist.length) % viewerPlaylist.length;
+  const project = viewerPlaylist[nextIndex];
 
   /* Rotation activée uniquement pour MONSIEUR PARIS */
   const wasPreloaded = preloadedViewerIndex === nextIndex;
@@ -1764,7 +1913,7 @@ async function loadViewerProject(index, token = viewerRequestToken) {
 
   currentIndex = nextIndex;
   viewerTitle.textContent = project.title;
-  updateSelectedThumbnail(currentIndex);
+  if (viewerReturnPage !== "work") updateSelectedThumbnail(currentIndex);
 
   // Lors d'un changement dans le viewer, garder l'image actuelle visible
   // jusqu'à ce que le nouveau projet soit prêt : ne pas réafficher le noir.
@@ -1784,6 +1933,28 @@ async function loadViewerProject(index, token = viewerRequestToken) {
     await withTimeout(viewerPlayer.setMuted(true), 1200);
     await withTimeout(viewerPlayer.setVolume(0), 1200);
     await withTimeout(viewerPlayer.setLoop(true), 1200);
+
+    if (monsieurTimeGuard) {
+      try { viewerPlayer.off("timeupdate", monsieurTimeGuard); } catch (error) {}
+      monsieurTimeGuard = null;
+    }
+    if (project.id === "1225955279") {
+      let monsieurSeeking = false;
+      monsieurTimeGuard = async (data) => {
+        if (monsieurSeeking || !viewerOpen || token !== viewerRequestToken) return;
+        const duration = Number(data.duration);
+        const seconds = Number(data.seconds);
+        if (duration > 1.5 && seconds >= duration - 1.5) {
+          monsieurSeeking = true;
+          try {
+            await viewerPlayer.setCurrentTime(0);
+            await viewerPlayer.play();
+          } catch (error) {}
+          monsieurSeeking = false;
+        }
+      };
+      viewerPlayer.on("timeupdate", monsieurTimeGuard);
+    }
 
     if (!viewerOpen || token !== viewerRequestToken) return;
 
@@ -1820,7 +1991,7 @@ async function loadViewerProject(index, token = viewerRequestToken) {
     await withTimeout(viewerPlayer.setVolume(1), 1200);
     await withTimeout(viewerPlayer.setMuted(false), 1200);
     if (!viewerOpen || token !== viewerRequestToken) return;
-    void preloadViewerProject((nextIndex + 1) % projects.length);
+    if (viewerReturnPage !== "work") void preloadViewerProject((nextIndex + 1) % projects.length);
 
   } catch (error) {
     console.warn("Impossible de lancer le projet :", error);
@@ -1869,6 +2040,7 @@ function closeProjectViewer() {
     if (viewerReturnPage === "work") {
       openWorkPage();
       viewerReturnPage = "home";
+      viewerPlaylist = projects;
       return;
     }
 
@@ -1907,14 +2079,14 @@ function closeProjectViewer() {
 
 document.getElementById("viewer-previous").addEventListener("click", () => {
   loadViewerProject(
-    (currentIndex - 1 + projects.length) % projects.length,
+    (currentIndex - 1 + viewerPlaylist.length) % viewerPlaylist.length,
     ++viewerRequestToken
   );
 });
 
 document.getElementById("viewer-next").addEventListener("click", () => {
   loadViewerProject(
-    (currentIndex + 1) % projects.length,
+    (currentIndex + 1) % viewerPlaylist.length,
     ++viewerRequestToken
   );
 });
@@ -1938,12 +2110,12 @@ document.addEventListener("keydown", event => {
 
   if (event.key === "ArrowLeft") {
     loadViewerProject(
-      (currentIndex - 1 + projects.length) % projects.length,
+      (currentIndex - 1 + viewerPlaylist.length) % viewerPlaylist.length,
       ++viewerRequestToken
     );
   } else if (event.key === "ArrowRight") {
     loadViewerProject(
-      (currentIndex + 1) % projects.length,
+      (currentIndex + 1) % viewerPlaylist.length,
       ++viewerRequestToken
     );
   }
@@ -2055,135 +2227,65 @@ async function startSequence() {
   void warmProjectPlayers();
 }
 
-/* INTRO : on laisse le logo se jouer en entier, puis les miniatures se révèlent une à une.
-   Elles rejoignent ensuite la position du rail ; les éléments de la homepage n'apparaissent
-   qu'à la fin du déplacement, pour éviter une coupure visuelle. */
+/* INTRO : le logo disparaît et la homepage apparaît immédiatement en fondu. */
 document.body.classList.add("intro-hidden");
+introThumbnails.style.display = "none";
 
-// Logo seul au début, puis fondu de sortie.
 setTimeout(() => {
+  // Le logo doit avoir complètement disparu avant que la homepage commence à apparaître.
   intro.classList.add("logo-out");
-}, 3600);
-
-// Les miniatures arrivent une par une, avec chevauchement des fondus.
-setTimeout(() => {
-  intro.classList.add("thumbnails-in");
-}, 4050);
-
-// Lance Louis Vuitton en sourdine avant la fin de l'intro : Vimeo a ainsi le temps
-// de charger et démarrer la vidéo derrière l'overlay, sans attente après la miniature.
-setTimeout(() => {
-  // Démarre Louis Vuitton avant la fin du mouvement des miniatures. Les appels
-  // parallèles évitent d'attendre chaque réponse Vimeo l'une après l'autre.
-  void Promise.allSettled([
-    players[0].setMuted(true),
-    players[0].setVolume(0),
-    players[0].play()
-  ]);
-}, 4300);
-
-// Elles deviennent ensuite les éléments du carrousel : déplacement + mise à l'échelle
-// vers les coordonnées exactes du rail réel. L'interface apparaît pendant ce mouvement,
-// derrière les mêmes vignettes, puis l'overlay s'efface une fois le raccord terminé.
-setTimeout(() => {
-  const introItems = Array.from(introThumbnails.querySelectorAll(".intro-thumb"));
-
-  // Stabilise d'abord le vrai carrousel dans son état d'arrivée définitif.
-  // Cela évite que startSequence() réordonne ensuite les miniatures sous l'overlay.
-  resetThumbnailRailForSequenceStart();
-  thumbnailItems.forEach(item => item.classList.toggle("selected", Number(item.dataset.index) === 0));
-  navigation.style.transition = "none";
-  navigation.classList.add("visible");
-  document.body.classList.remove("intro-hidden");
-  document.body.classList.add("intro-revealing");
-  void navigation.offsetWidth;
-
-  // Mesure les positions au centre, puis sort les vignettes du conteneur animé.
-  // Important : .intro-thumbnails possède un transform, qui devient un bloc de
-  // référence pour les enfants en position:fixed. Si on les laisse dedans,
-  // retirer ce transform pendant le changement de layout les téléporte à droite.
-  // En les replaçant directement sous body, leurs coordonnées restent celles de
-  // la fenêtre et le mouvement démarre exactement de leur position centrale.
-  const starts = introItems.map(item => item.getBoundingClientRect());
-  introItems.forEach((item, i) => {
-    const r = starts[i];
-    item.style.transition = "none";
-    item.style.position = "fixed";
-    item.style.left = `${r.left}px`;
-    item.style.top = `${r.top}px`;
-    item.style.width = `${r.width}px`;
-    item.style.height = `${r.height}px`;
-    item.style.margin = "0";
-    item.style.zIndex = "201";
-    item.style.opacity = ".88";
-    item.style.transform = "none";
-    document.body.appendChild(item);
-  });
-  // Force l'application des coordonnées dans leur nouveau parent (body).
-  void introItems[0].offsetWidth;
-  intro.classList.add("thumbnails-left");
-  void introThumbnails.offsetWidth;
-  // Réactive les transitions explicitement : les vignettes sont désormais
-  // indépendantes du conteneur et ne peuvent plus changer d'origine.
-  introItems.forEach(item => {
-    item.style.transition = "left 1.65s cubic-bezier(.22,.75,.18,1), top 1.65s cubic-bezier(.22,.75,.18,1), width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1), opacity .4s ease";
-    const imageFrame = item.querySelector(".intro-thumb-image-frame");
-    if (imageFrame) imageFrame.style.transition = "width 1.65s cubic-bezier(.22,.75,.18,1), height 1.65s cubic-bezier(.22,.75,.18,1)";
-  });
-  void introItems[0].offsetWidth;
-
-  // Mesure après stabilisation du layout : destinations exactes du rail, titres compris.
-  // On attend deux frames pour garantir que les positions de départ sont peintes avant le déplacement.
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    const realItems = Array.from(thumbnailTrack.querySelectorAll(".project"));
-    const destinations = realItems.map(item => ({
-      rect: item.getBoundingClientRect(),
-      image: item.querySelector(".project-thumb").getBoundingClientRect(),
-      title: item.querySelector(".project-title").getBoundingClientRect(),
-      opacity: getComputedStyle(item).opacity
-    }));
-
-    // Force la lecture de la géométrie des éléments fixes à leur point de départ.
-    introItems.forEach(item => void item.getBoundingClientRect());
-    requestAnimationFrame(() => {
-      introItems.forEach((item, i) => {
-        const target = destinations[i];
-        if (!target) return;
-        item.style.left = `${target.rect.left}px`;
-        item.style.top = `${target.rect.top}px`;
-        item.style.width = `${target.rect.width}px`;
-        item.style.height = `${target.rect.height}px`;
-        const frame = item.querySelector(".intro-thumb-image-frame");
-        frame.style.width = `${target.image.width}px`;
-        frame.style.height = `${target.image.height}px`;
-        item.querySelector(".intro-thumb-title").style.width = `${target.title.width}px`;
-        item.querySelector(".intro-thumb-title").style.opacity = "0";
-        item.style.opacity = target.opacity;
-      });
-      // Les titres apparaissent seulement quand le déplacement des vignettes est terminé.
-      setTimeout(() => {
-        document.body.classList.add("intro-titles-visible");
-        introItems.forEach(item => {
-          const title = item.querySelector(".intro-thumb-title");
-          if (title) title.style.opacity = "1";
-        });
-      }, 1650);
-    });
-  }));
-}, 5500);
-
-setTimeout(() => {
-  intro.classList.add("hide");
   setTimeout(() => {
-    intro.style.display = "none";
-    // Les vignettes animées sont des éléments temporaires sous body : retire-les
-    // après la transition, le vrai rail étant déjà visible exactement dessous.
-    document.querySelectorAll("body > .intro-thumb").forEach(item => item.remove());
-    navigation.style.transition = "";
-    document.body.classList.remove("intro-revealing");
-    startSequence();
-  }, 850);
-}, INTRO_DURATION);
+    document.body.classList.remove("intro-hidden");
+    document.body.classList.add("intro-revealing");
+    navigation.classList.add("visible");
+    updateSelectedThumbnail(0);
+    void Promise.allSettled([
+      players[0].setMuted(true),
+      players[0].setVolume(0),
+      players[0].play()
+    ]);
+    intro.classList.add("hide");
+    setTimeout(() => {
+      intro.style.display = "none";
+      document.body.classList.remove("intro-revealing");
+      startSequence();
+    }, 450);
+  }, 1000);
+}, 3000);
+
+/* CURSEUR TYPOGRAPHIQUE BIFACE */
+const bifaceCursor = document.getElementById("biface-cursor");
+if (bifaceCursor && window.matchMedia("(hover:hover) and (pointer:fine)").matches) {
+  window.addEventListener("pointermove", event => {
+    bifaceCursor.style.left = `${event.clientX}px`;
+    bifaceCursor.style.top = `${event.clientY}px`;
+    bifaceCursor.classList.add("visible");
+  }, { passive:true });
+  document.addEventListener("pointerleave", () => bifaceCursor.classList.remove("visible"));
+  document.addEventListener("pointerenter", () => bifaceCursor.classList.add("visible"));
+
+  const nativeCursorTargets = [
+    "#top-links", "#logo", "#work-panel", "#about-panel", "#contact-panel",
+    "#project-viewer", "#viewer-close", ".viewer-close", ".viewer-prev", ".viewer-next",
+    "#about-close", "#contact-close", "#work-close", ".work-filter", ".work-card",
+    "a", "button", "[role=\"button\"]"
+  ].join(",");
+
+  document.addEventListener("pointerover", event => {
+    const target = event.target instanceof Element ? event.target : null;
+    const overNativeTarget = target && target.closest(nativeCursorTargets);
+    const inFullscreenViewer = document.body.classList.contains("viewer-open") ||
+      (target && target.closest("#project-viewer"));
+    document.body.classList.toggle("cursor-native", Boolean(overNativeTarget || inFullscreenViewer));
+  }, true);
+
+  document.addEventListener("pointerout", event => {
+    const related = event.relatedTarget instanceof Element ? event.relatedTarget : null;
+    if (!related || !related.closest(nativeCursorTargets + ", #project-viewer")) {
+      document.body.classList.remove("cursor-native");
+    }
+  }, true);
+}
 
 /* REDIMENSIONNEMENT */
 
